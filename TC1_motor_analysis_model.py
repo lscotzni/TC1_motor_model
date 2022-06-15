@@ -3,11 +3,11 @@ from csdl import Model, ScipyKrylov, NewtonSolver
 from csdl_om import Simulator
 import csdl
 
-from TC1_magnet_mec_model import MagnetMECModel
-from TC1_inductance_mec_model import InductanceModel
-from TC1_flux_weakening_model import FluxWeakeningModel
-from TC1_mtpa_model import MTPAModel
-from TC1_post_processing_model import PostProcessingModel
+from analysis_models.TC1_magnet_mec_model import MagnetMECModel
+from analysis_models.TC1_inductance_mec_model import InductanceModel
+from analysis_models.TC1_flux_weakening_model import FluxWeakeningModel
+from analysis_models.TC1_mtpa_model import MTPAModel
+from analysis_models.TC1_post_processing_model import PostProcessingModel
 
 
 '''

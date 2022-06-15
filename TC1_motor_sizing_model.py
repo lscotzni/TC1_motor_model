@@ -4,7 +4,7 @@ from csdl_om import Simulator
 from csdl import Model
 import csdl
 
-from TC1_magnet_mec_model import TC1MotorMECModel
+from analysis_models.TC1_magnet_mec_model import TC1MotorMECModel # NOT NEEDED
 
 class TC1MotorSizingModel(Model):
     '''
