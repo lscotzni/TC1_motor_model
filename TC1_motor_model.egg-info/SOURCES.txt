@@ -1,0 +1,8 @@
+setup.py
+TC1_motor_model/TC1_motor_analysis_model.py
+TC1_motor_model/TC1_motor_sizing_model.py
+TC1_motor_model.egg-info/PKG-INFO
+TC1_motor_model.egg-info/SOURCES.txt
+TC1_motor_model.egg-info/dependency_links.txt
+TC1_motor_model.egg-info/requires.txt
+TC1_motor_model.egg-info/top_level.txt

@@ -1,0 +1,50 @@
+Things to mention at meeting with Darshan
+- data-fitted smooth models exist for materials; should I make them inputs or should
+  I just add the coefficients manually
+- still waiting on Victor for the bracket updating methods
+- need to look at video to get a reference for how to set up models in CADDEE
+- mention that the VLM and rotor solvers weren't able to be pulled
+- ask Darshan how the RPM for each flight condition is chosen
+  - motor sizing done with rated speed as the design variable for optimizer in terms of sizing
+
+========================================================================================
+
+Things to mention at meeting with Zeyu/Shuofeng/Gabe
+- confirm the state phi_aq for inductance MEC and the bracket
+  - Important thing to consider: is phi_aq GUARANTEED to fall between 0 and phi_air?
+    - it's done this way in the MATLAB code so I want to clarify this
+    - << bracket should be between 0 and phi_air >>
+- proper psi_m from the equations
+  - the MTPA and flux weakening methods use phi_air, but I thought the phi in the 
+    equations should be the magnet flux (it's denoted with a _m)
+  - << psi_m is the air gap flux, NOT the magnet >>
+- how is base speed selected?
+  - << use rated speed to size motor; will let optimizer select this so that motor sizing
+        changes with each optimization iteration >>
+
+========================================================================================
+
+CADDEE NOTES
+- CADDEE instantiation with some name 
+- feature of aircraft (like rotor, wing, etc.)
+  - idea in future is to automate parameters of feature from geometry side
+- mission segments 
+  - solver defined in mission segment must contain a feature
+  - solver is a pure python class, but it includes an internal attribute that is a CSDL model
+  - standard set of inputs (12 states + unique inputs that are needed for motor)
+  - WE WILL DEFINE THE RATED SPEED AS ONE OF THESE INPUTS AS A DESIGN VARIABLE 
+    - also potentially include the material model
+  - add AllowableOperatingconditions as needed
+
+========================================================================================
+TO-DO:
+  - add the analytical brackets 
+    - inductance MEC model (DONE, NEEDS CHECKING) 
+    - flux weakening (DONE, BUT METHOD MAY CHANGE SO REVISIT)
+  - change the MTPA model to just the analytical solution (DONE)
+    - the bracketing method requires solving the analytical method to set up the upper bracket
+    - at that point, the computation is simple enough to do the analytical method
+  - test the implicit operation models to check the variable bracket method
+    - REQUIRES AN UPDATE OF CSDL, CHECK VICTOR'S LAST MESSAGE
+  - set up the pip install method properly
+  - add the models into the proper places based on notes from meeting with Darshan

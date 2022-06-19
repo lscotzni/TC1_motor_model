@@ -9,9 +9,8 @@ from analysis_models.TC1_magnet_mec_model import TC1MotorMECModel # NOT NEEDED
 class TC1MotorSizingModel(Model):
     '''
     INPUTS TO THIS MODEL:
-        - tau_max (maximum torque)
-        - D_rotor (rotor diameter)
-        - omega_base (base speed of motor)
+        - max power
+        - rated_omega (rated speed of motor)
 
     OUTPUTS OF THIS MODEL:
         - L_motor (motor length)
@@ -50,10 +49,7 @@ class TC1MotorSizingModel(Model):
         self.fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
 
         # --- INPUTS FROM PREVIOUS MODELS ---
-        tau_max = self.declare_variable('tau_max') # MAX TORQUE
-        omega_base = self.declare_variable('omega_base') # MOTOR BASE/RATED SPEED IN RPM
-        omega = self.declare_variable('omega')
-        D_rotor = self.declare_variable('D_rotor') # ROTOR DIAMETER
+        rated_omega = self.declare_variable('rated_omega') # MOTOR BASE/RATED SPEED IN RPM
 
         # --- BASIC MOTOR PARAMETERS ---
         m = self.declare_variable('phases', val=3) # NUMBER OF PHASES
@@ -62,14 +58,13 @@ class TC1MotorSizingModel(Model):
         q = self.register_output('slots_per_pole_per_phase', var=Z/(2*m*p)) # SLOTS PER POLE PER PHASE
         a = self.declare_variable('parallel_branches', val=1.0)
 
-        eta_0 = self.declare_variable('eta_0', val=0.88) # ASSUMED INITIAL EFFICIENCY; MATLAB CODE STARTS WITH 0.88
+        eta_0 =0.88 # ASSUMED INITIAL EFFICIENCY; MATLAB CODE STARTS WITH 0.88
 
-        f_i = self.register_output('frequency', var=omega_base*p/60) # FREQUENCY
+        f_i = self.register_output('frequency', var=rated_omega*p/60) # FREQUENCY
         mu_0 = self.declare_variable('vacuum_permeability', np.pi*4e-7)
 
         # --- CALCULATING SIZE PARAMETER & MOTOR DIMENSIONS ---
         rated_power = self.declare_variable('rated_power')
-        rated_rpm = self.declare_variable('rated_rpm')
         rated_phase_voltage = self.declare_variable('rated_phase_voltage')
         power_current = rated_power/(m*rated_phase_voltage)
         
@@ -89,7 +84,7 @@ class TC1MotorSizingModel(Model):
 
         motor_size_parameter = self.register_output(
             'motor_size_parameter',
-            (6.1 * P_calc) / (kwm * kdp1 * line_load * alpha_B * B_air_gap_max * omega_base)
+            (6.1 * P_calc) / (kwm * kdp1 * line_load * alpha_B * B_air_gap_max * rated_omega)
         )
 
         length_to_pole_pitch_ratio = 2.8 # CALLED AS lambda IN ZEYU'S MATLAB CODE
@@ -226,10 +221,16 @@ class TC1MotorSizingModel(Model):
 
         C = 1.05
         rho_cu = 8960. # mass density of copper in kg/m^3
-        mass_cu = C * l_coil * conductors_per_slot**2 * Z * Acu * rho_cu # mass of copper
+        mass_cu = self.register_output(
+            'mass_cu',
+            C * l_coil * conductors_per_slot**2 * Z * Acu * rho_cu
+         ) # mass of copper
 
         rho_fe = 7874. # mass density of iron in kg/m^3
-        mass_fe = kfe*l_ef*rho_fe*(outer_stator_radius*100 + 0.05)**2 * 1e-3 * 0.1 # mass of iron
+        mass_fe = self.register_output(
+            'mass_fe',
+            kfe*l_ef*rho_fe*(outer_stator_radius*100 + 0.05)**2 * 1e-3 * 0.1 
+        )# mass of iron
 
         '''------------------- EVERYTHING BELOW THIS IS NOT NEEDED -----------------------'''
 

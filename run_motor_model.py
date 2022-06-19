@@ -4,8 +4,8 @@ from csdl_om import Simulator
 from csdl import Model
 import csdl
 
-from TC1_motor_sizing_model import TC1MotorSizingModel
-from TC1_motor_analysis_model import TC1MotorAnalysisModel
+from TC1_motor_model.TC1_motor_sizing_model import TC1MotorSizingModel
+from TC1_motor_model.TC1_motor_analysis_model import TC1MotorAnalysisModel
 
 class TC1MotorModel(Model):
     '''
@@ -25,12 +25,12 @@ class TC1MotorModel(Model):
         op_voltage = self.parameters['op_voltage']
 
         omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,1))
-        torque_rotor = self.declare_variable('torque_rotor', shape=(num_nodes,1))
+        load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,1))
 
         gear_ratio = 4
 
         omega = self.register_output('omega', omega_rotor * gear_ratio)
-        torque = self.register_output('torque', torque_rotor * gear_ratio)
+        load_torque = self.register_output('load_torque', load_torque_rotor/gear_ratio)
 
         self.add(
             TC1MotorSizingModel(),

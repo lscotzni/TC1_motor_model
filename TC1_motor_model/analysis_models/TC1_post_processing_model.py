@@ -83,6 +83,15 @@ class PostProcessingModel(Model):
         efficiency = P0/(P0+P_loss)
 
         efficiency = self.register_output('effiicency', efficiency)
+
+        ''' MASS CALCULATIONS '''
+        mass_fe = self.declare_variable('mass_fe')
+        mass_cu = self.declare_variable('mass_cu')
+
+        motor_mass = self.register_output(
+            'motor_mass',
+            mass_fe+mass_cu
+        )
         
         
 ''' ---- NOTES ----

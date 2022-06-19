@@ -57,8 +57,11 @@ class MagnetMECModel(Model):
         hy = MECmodel.declare_variable('hy') # YOKE HEIGHT IN STATOR
         ly = MECmodel.declare_variable('L_j1') # STATOR YOKE LENGTH OF MEC (CALLED L_j1 IN MATLAB & SIZING MODEL)
 
-        phi_delta = alpha*tau*l_ef*B_delta # AIR GAP FLUX
-        B_y = phi_delta / (2*hy*l_ef) # YOKE FLUX DENSITY
+        phi_air = MECmodel.register_output(
+            'phi_air',
+            alpha*tau*l_ef*B_delta # AIR GAP FLUX; CALLED phi_air IN MATLAB CODE
+        )
+        B_y = phi_air / (2*hy*l_ef) # YOKE FLUX DENSITY
         H_y = self.fitting_dep_B(B_y) # YOKE MAGNETIC FIELD
         F_y = 2*ly*H_y # YOKE MMF
 
@@ -67,13 +70,13 @@ class MagnetMECModel(Model):
         delta = MECmodel.declare_variable('delta') # AIR GAP DEPTH
         k_delta = MECmodel.declare_variable('K_theta') # CARTER'S COEFF; CALLED K_theta IN MATLAB & SIZING MODEL
 
-        F_delta = self.register_output(
+        F_delta = MECmodel.register_output(
             'F_delta',
             1.6*delta*k_delta*B_delta/mu_0
         )
         
         ''' --- MMF SUM --- '''
-        F_sum = self.register_output(
+        F_sum = MECmodel.register_output(
             'F_sum',
             F_t + F_y + F_delta
         )
@@ -84,15 +87,15 @@ class MagnetMECModel(Model):
         B_f = self.fitting_dep_H(H_f)
 
         ''' --- LEAKAGE FLUX CALCULATIONS --- '''
-        # NOTE: phi_delta already calculated above
+        # NOTE: phi_air already calculated above
         A_f = MECmodel.declare_variable('A_f2') # CROSS SECTIONAL AREA OF MAGNET BRIDGE
         lambda_s = MECmodel.declare_variable('lambda_s', val=0.336e-6)
         # NOTE: lambda_s is not typically a constant so need to check later
 
         phi_f = B_f * A_f
         phi_s = F_sum * lambda_s
-        phi_sum = phi_delta + phi_f + phi_s
-        phi_sum = self.register_output(
+        phi_sum = phi_air + phi_f + phi_s
+        phi_sum = MECmodel.register_output(
             'phi_sum',
             phi_sum
         )
@@ -154,8 +157,9 @@ class MagnetMECModel(Model):
         mu_r = self.declare_variable('mu_r')
         Am_r = self.declare_variable('Am_r')
         K_sigma_air = self.declare_variable('K_sigma_air')
+        phi_air = self.declare_variable('phi_air')
 
-        lambda_theta = phi_sum/F_sum # MAIN MAGNETIC CONDUCTION
+        lambda_theta = phi_air/F_sum # MAIN MAGNETIC CONDUCTION
         lambda_theta_standard = (2*lambda_theta*hm) / (mu_r*mu_0*Am_r) # STANDARD VALUE OF lambda_theta
         lambda_n = self.register_output(
             'lambda_n',
@@ -167,9 +171,8 @@ class MagnetMECModel(Model):
         lambda_leak_standard = self.register_output('lambda_leak_standard', lambda_leak_standard)
 
 
-
 if __name__ == '__main__':
-    from mu_fitting import permeability_fitting
+    from TC1_motor_model.permeability.mu_fitting import permeability_fitting
     file_name = 'Magnetic alloy, silicon core iron C.tab'
     order=10
 

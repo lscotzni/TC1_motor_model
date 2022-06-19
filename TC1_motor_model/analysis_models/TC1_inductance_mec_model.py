@@ -39,7 +39,7 @@ class InductanceModel(Model):
 
         # --- d-axis inductance ---
         
-        phi_sum = self.declare_variable('phi_sum')
+        phi_air = self.declare_variable('phi_air')
         F_sum = self.declare_variable('F_sum')
         F_delta = self.declare_variable('F_delta')
         p = self.declare_variable('pole_pairs')
@@ -99,7 +99,7 @@ class InductanceModel(Model):
         Am_r = self.declare_variable('Am_r')
         Br = self.declare_variable('Br')
         K_phi = self.declare_variable('K_phi')
-        E_o = 4.44*f_i*Kdp1*turns_per_phase*phi_sum*K_phi
+        E_o = 4.44*f_i*Kdp1*turns_per_phase*phi_air*K_phi
         bm_N = (lambda_n*(1-f_a)) / (lambda_n + 1) # lambda_n comes from MEC
         phi_air_N = (bm_N*(1-bm_N)*lambda_leak_standard) * Am_r * Br
         E_d = 4.44*f_i*Kdp1*turns_per_phase*phi_air_N*K_phi # EM at d-axis
@@ -112,6 +112,7 @@ class InductanceModel(Model):
 
         # --- q-axis inductance (implicit operation) ---
         model = Model()
+        phi_air_bracket = model.declare_variable('phi_air') # DECLARING FOR BRACKET
         phi_aq = model.declare_variable('phi_aq') # STATE
 
         alpha_i = model.declare_variable('alpha_i')
@@ -153,9 +154,8 @@ class InductanceModel(Model):
         )
 
         eps = 1e-5
-        Br  = 1.2
         Inductance_MEC = self.create_implicit_operation(model)
-        Inductance_MEC.declare_state('phi_aq', residual='residual', bracket=(eps, Br - eps))
+        Inductance_MEC.declare_state('phi_aq', residual='residual', bracket=(eps, phi_air_bracket - eps))
         Inductance_MEC.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
             maxiter=100,
@@ -185,7 +185,7 @@ class InductanceModel(Model):
             I_d_temp, I_w,
         )
 
-        E_aq = phi_aq*E_o/phi_sum # EMF @ Q-AXIS
+        E_aq = phi_aq*E_o/phi_air # EMF @ Q-AXIS
         I_q_temp = self.declare_variable('I_q_temp')
         Xaq = E_aq/I_q_temp
         Xq = Xaq + X_1

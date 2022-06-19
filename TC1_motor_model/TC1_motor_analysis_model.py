@@ -36,9 +36,12 @@ class TC1MotorAnalysisModel(Model):
         num_nodes = self.parameters['num_nodes']
         op_voltage = self.parameters['op_voltage']
 
+        omega = self.declare_variable('omega', shape=(num_nodes,1))
+        load_torque = self.declare_variable('load_torque', shape=(num_nodes,1))
+
         model=Model()
-        T_load = model.declare_variable('T_load', shape=(num_nodes,1)) # comes from rotor model
-        T_em = model.declare_variable('T_em', val=500, shape=(num_nodes,1))  # state of implicit model
+        load_torque = model.declare_variable('load_torque', shape=(num_nodes,1)) # comes from rotor model
+        em_torque = model.declare_variable('em_torque', val=500, shape=(num_nodes,1))  # state of implicit model
 
         model.add(
             'magnet_MEC_model',
@@ -101,9 +104,9 @@ class TC1MotorAnalysisModel(Model):
         )
         solve_motor_analysis.linear_solver = ScipyKrylov()
 
-        T_load = self.declare_variable('T_load')
-        efficiency = self.declare_variable('efficiency')
-        T_em = self.declare_variable('T_em')
+        T_load = self.declare_variable('T_load', shape=(num_nodes,1))
+        efficiency = self.declare_variable('efficiency', shape=(num_nodes,1))
+        T_em = solve_motor_analysis(T_load, efficiency)
         # FROM HERE, THE OUTPUT POWER AND EFFICIENCY ARE PROPOGATED TO THE
         # BATTERY ANALYSIS MODELS
 
