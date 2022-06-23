@@ -7,13 +7,19 @@ from csdl_om import Simulator
 
 class PostProcessingModel(Model):
     def initialize(self):
-        self.parameters.declare('num_nodes')
+        self.parameters.declare('pole_pairs') # 6
+        self.parameters.declare('phases') # 3
         self.parameters.declare('op_voltage')
+        self.parameters.declare('V_lim')
+        self.parameters.declare('num_nodes')
 
     def define(self):
 
-        num_nodes = self.parameters['num_nodes']
+        m = self.parameters['phases']
+        p = self.parameters['pole_pairs']
         op_voltage = self.parameters['op_voltage']
+        V_lim = self.parameters['V_lim']
+        num_nodes = self.parameters['num_nodes']
 
         ''' FLUX WEAKENING (I_d) & MTPA SMOOTHING (I_q) '''
         # convert I_d of flux weakening into I_q using torque equation
@@ -22,14 +28,12 @@ class PostProcessingModel(Model):
         L_d = self.declare_variable('L_d', shape=(num_nodes,1))
         phi = self.declare_variable('phi', shape=(num_nodes,1))
         T_em = self.declare_variable('T_em', shape=(num_nodes,1))
-        p = self.declare_variable('pole_pairs')
 
         Iq_fw = T_em / (1.5*p * (phi + (L_d-L_q)*Id_fw)) # CHECK SIZE OF COMPUTATIONS HERE
 
         # smoothing
         Iq_MTPA = self.declare_variable('Iq_MTPA', shape=(num_nodes,1)) # CHECK NAMING SCHEME FOR VARIABLE
         k = 1 # ASK SHUOFENG WHAT THIS IS
-        V_lim = 1 # need to update as input?
         I_q = (csdl.exp(k*(op_voltage - V_lim))*Iq_fw + csdl.exp(-1/(k*(op_voltage - V_lim)))*Iq_MTPA) / \
             (csdl.exp(k*(op_voltage - V_lim)) + csdl.exp(-1/(k*(op_voltage - V_lim))))
 
@@ -46,7 +50,6 @@ class PostProcessingModel(Model):
 
         # copper loss
         R_dc = self.declare_variable('R_dc')
-        m = self.declare_variable('phases')
         P_copper = m*R_dc*csdl.sqrt(I_q**2 + I_d**2) # NEED TO CHECK IF THIS IS ELEMENT-WISE SQUARING
 
         # eddy_loss
@@ -82,16 +85,7 @@ class PostProcessingModel(Model):
         P_loss = P_copper + P_eddy + P_h + P_stress + P_wo
         efficiency = P0/(P0+P_loss)
 
-        efficiency = self.register_output('effiicency', efficiency)
-
-        ''' MASS CALCULATIONS '''
-        mass_fe = self.declare_variable('mass_fe')
-        mass_cu = self.declare_variable('mass_cu')
-
-        motor_mass = self.register_output(
-            'motor_mass',
-            mass_fe+mass_cu
-        )
+        efficiency = self.register_output('efficency', efficiency)
         
         
 ''' ---- NOTES ----

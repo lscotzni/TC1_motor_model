@@ -6,7 +6,7 @@ import csdl
 from analysis_models.TC1_magnet_mec_model import MagnetMECModel
 from analysis_models.TC1_inductance_mec_model import InductanceModel
 from analysis_models.TC1_flux_weakening_model import FluxWeakeningModel
-from analysis_models.TC1_mtpa_model import MTPAModel
+from analysis_models.TC1_mtpa_model_new import MTPAModel
 from analysis_models.TC1_post_processing_model import PostProcessingModel
 
 
@@ -29,13 +29,25 @@ OUTPUTS:
 
 class TC1MotorAnalysisModel(Model):
     def initialize(self):
-        self.parameters.declare('num_nodes')
+        self.parameters.declare('pole_pairs') # 6
+        self.parameters.declare('phases') # 3
+        self.parameters.declare('num_slots') # 36
         self.parameters.declare('op_voltage')
+        self.parameters.declare('V_lim')
+        self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
+        self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
+        self.parameters.declare('num_nodes')
 
     def define(self):
-        num_nodes = self.parameters['num_nodes']
+        m = self.parameters['phases']
+        p = self.parameters['pole_pairs']
+        Z = self.parameters['num_slots']
         op_voltage = self.parameters['op_voltage']
-
+        V_lim = self.parameters['V_lim']
+        fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
+        fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
+        num_nodes = self.parameters['num_nodes']
+        
         omega = self.declare_variable('omega', shape=(num_nodes,1))
         load_torque = self.declare_variable('load_torque', shape=(num_nodes,1))
 
@@ -46,40 +58,47 @@ class TC1MotorAnalysisModel(Model):
         model.add(
             'magnet_MEC_model',
             MagnetMECModel(
-                num_nodes=num_nodes,
-                op_voltage=op_voltage,
+                fit_coeff_dep_H=fit_coeff_dep_H,
+                fit_coeff_dep_B=fit_coeff_dep_B,
             )
         )
 
         model.add(
             'inductance_MEC_model',
             InductanceModel(
-                num_nodes=num_nodes,
-                op_voltage=op_voltage,
+                pole_pairs=p,
+                phases=m,
+                num_slots=Z,
+                fit_coeff_dep_H=fit_coeff_dep_H,
+                fit_coeff_dep_B=fit_coeff_dep_B,
             )
         )
 
         model.add(
             'flux_weakening_model',
             FluxWeakeningModel(
-                num_nodes=num_nodes,
-                op_voltage=op_voltage,
+                pole_pairs=p,
+                V_lim=V_lim,
+                num_nodes=num_nodes
             )
         )
 
         model.add(
             'mtpa_model',
             MTPAModel(
-                num_nodes=num_nodes,
-                op_voltage=op_voltage,
+                pole_pairs=p,
+                num_nodes=num_nodes
             )
         )
 
         model.add(
             'post_processing_model',
             PostProcessingModel(
-                num_nodes=num_nodes,
+                pole_pairs=p,
+                phases=m,
                 op_voltage=op_voltage,
+                V_lim=V_lim,
+                num_nodes=num_nodes
             )
         )
 

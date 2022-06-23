@@ -7,19 +7,13 @@ from csdl_om import Simulator
 
 class MTPAModel(Model):
     def initialize(self):
-        self.parameters.declare('bracket_lower')
-        self.parameters.declare('bracket_upper')
+        self.parameters.declare('pole_pairs') # 6
         self.parameters.declare('num_nodes')
-        self.parameters.declare('op_voltage')
 
     def define(self):
-        bracket_lb = self.parameters['bracket_lower']
-        bracket_ub = self.parameters['bracket_upper']
-
+        p = self.parameters['pole_pairs']
         num_nodes = self.parameters['num_nodes']
-        op_voltage = self.parameters['op_voltage']
 
-        p = self.declare_variable('pole_pairs')
         L_d = self.declare_variable('L_d')
         L_q = self.declare_variable('L_q')
         phi_m = self.declare_variable('phi_m')

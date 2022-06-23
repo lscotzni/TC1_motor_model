@@ -7,14 +7,11 @@ from csdl_om import Simulator
 
 class InductanceModel(Model):
     def initialize(self):
-        self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H)
-        self.parameters.declare('fit_form_dep_H') # FITTING EQUATION FORM (B = f(H))
-
-        self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B)
-        self.parameters.declare('fit_form_dep_B') # FITTING EQUATION FORM (H = g(B))
-
-        self.parameters.declare('num_nodes')
-        self.parameters.declare('op_voltage')
+        self.parameters.declare('pole_pairs') # 6
+        self.parameters.declare('phases') # 3
+        self.parameters.declare('num_slots') # 36
+        self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
+        self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
 
     def fitting_dep_H(self, H):
         f = []
@@ -32,17 +29,17 @@ class InductanceModel(Model):
         return f
 
     def define(self):
+        m = self.parameters['phases']
+        p = self.parameters['pole_pairs']
+        Z = self.parameters['num_slots']
         self.fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         self.fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
-        num_nodes = self.parameters['num_nodes']
-        op_voltage = self.parameters['op_voltage']
 
         # --- d-axis inductance ---
         
         phi_air = self.declare_variable('phi_air')
         F_sum = self.declare_variable('F_sum')
         F_delta = self.declare_variable('F_delta')
-        p = self.declare_variable('pole_pairs')
         f_i = self.declare_variable('frequency')
         mu_0 = self.declare_variable('vacuum_permeability')
         l_ef = self.declare_variable('l_ef')
@@ -61,8 +58,6 @@ class InductanceModel(Model):
         lambda_L1 = 0.45
         lambda_S1 = lambda_U1 + lambda_L1
 
-        m = self.declare_variable('phases')
-        Z = self.declare_variable('num_slots')
         Kdp1 = self.declare_variable('Kdp1')
 
         X_s1 = (2*p*m*l_ef*lambda_S1*Cx)/(l_ef*Z*Kdp1^2)
@@ -88,8 +83,8 @@ class InductanceModel(Model):
         I_d_temp = I_w/2
         turns_per_phase = self.declare_variable('turns_per_phase')
         F_ad = 0.45*m*Kad*Kdp1*turns_per_phase*I_d_temp/p
-        hm = self.declare_variable('hm')
-        Hc = self.declare_variable('Hc')
+        hm = 0.004 # MAGNET THICKNESS
+        Hc = 907000 # MAGNET COERCIVITY
         K_sigma_air = self.declare_variable('K_sigma_air') # COEFFICIENT OF LEAKAGE IN AIR GAP
 
         f_a = F_ad / (K_sigma_air*hm*Hc)
@@ -97,7 +92,7 @@ class InductanceModel(Model):
         lambda_n = self.declare_variable('lambda_n')
         lambda_leak_standard = self.declare_variable('lambda_leak_standard')
         Am_r = self.declare_variable('Am_r')
-        Br = self.declare_variable('Br')
+        Br = 1.2 # MAGNET REMANENCE
         K_phi = self.declare_variable('K_phi')
         E_o = 4.44*f_i*Kdp1*turns_per_phase*phi_air*K_phi
         bm_N = (lambda_n*(1-f_a)) / (lambda_n + 1) # lambda_n comes from MEC
@@ -127,7 +122,7 @@ class InductanceModel(Model):
 
         tooth_pitch = model.declare_variable('tooth_pitch')
         tooth_width = model.declare_variable('tooth_width')
-        kfe = model.declare_variable('lamination_coefficient')
+        kfe = 0.95 # LAMINATION COEFFICIENT
 
         B_t_q = B_aq*tooth_pitch*l_ef/tooth_width/kfe/l_ef
         H_t1_q = self.fitting_dep_B(B_t_q)

@@ -7,8 +7,14 @@ from csdl_om import Simulator
 
 class MagnetMECModel(Model):
     def initialize(self):
-        self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
-        self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
+        self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H)
+        self.parameters.declare('fit_form_dep_H') # FITTING EQUATION FORM (B = f(H))
+
+        self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B)
+        self.parameters.declare('fit_form_dep_B') # FITTING EQUATION FORM (H = g(B))
+
+        self.parameters.declare('num_nodes')
+        self.parameters.declare('op_voltage')
 
     def fitting_dep_H(self, H):
         f = []
@@ -28,22 +34,8 @@ class MagnetMECModel(Model):
     def define(self):
         self.fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         self.fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
-
-        # t1      = self.declare_variable('tooth_pitch') # TOOTH PITCH
-        # b1      = self.declare_variable('tooth_width') # TOOTH WIDTH
-        # h_t1      = self.declare_variable('slot_height') # HEIGHT OF SLOT
-        # alpha_i   = self.declare_variable('alpha_i') # ELECTRICAL ANGLE PER SLOT
-        # tau     = self.declare_variable('pole_pitch') # POLE PITCH
-        # l_ef    = self.declare_variable('l_ef') # MAGNET LENGTH ALONG SHAFT (TYPICALLY STACK LENGTH)
-        # hj1      = self.declare_variable('height_yoke_stator') # YOKE HEIGHT IN STATOR
-        # ly      = self.declare_variable('L_j1') # STATOR YOKE LENGTH OF MEC (CALLED L_j1 IN MATLAB & SIZING MODEL)
-        # sigma_air   = self.declare_variable('air_gap_depth') # AIR GAP DEPTH
-        # K_theta = self.declare_variable('K_theta') # CARTER'S COEFF; CALLED K_theta IN MATLAB & SIZING MODEL
-        # A_f2     = self.declare_variable('A_f2') # CROSS SECTIONAL AREA OF MAGNET BRIDGE
-        # lambda_s = self.declare_variable('lambda_s', val=0.336e-6)
-        # bm      = self.declare_variable('bm') # ARC LENGTH OF MAGNET
-        # phi_r   = self.declare_variable('phi_r') 
-        # lambda_m = self.declare_variable('lambda_m')
+        num_nodes = self.parameters['num_nodes']
+        op_voltage = self.parameters['op_voltage']
 
         MECmodel=Model()
 
@@ -92,7 +84,7 @@ class MagnetMECModel(Model):
         )
 
         ''' --- MAGNETIC BRIDGE CALCULATIONS --- '''
-        hm = 0.004 # MAGNET THICKNESS
+        hm = MECmodel.declare_variable('magnet_thickness') # MAGNET THICKNESS
         H_f = F_total / hm
         B_f = self.fitting_dep_H(H_f)
 
@@ -137,17 +129,13 @@ class MagnetMECModel(Model):
         ''' --- SETTING UP NONLINEAR SOLVER --- '''
         eps = 1e-6
         Br  = 1.2
-        lower_bound = eps
-        upper_bound = 1.2
-        # lower_bound = self.declare_variable('zero', 0.0)
-        # upper_bound = self.declare_variable('Br', Br)
-        # lower_bound = self.register_output('lower_bound', lower_bound * 1.0)
-        # upper_bound = self.register_output('upper_bound', upper_bound * 1.0)
+        lower_bound = self.declare_variable('lower_bound', eps)
+        upper_bound = self.declare_variable('upper_bound', Br)
         solve_MEC = self.create_implicit_operation(MECmodel)
         solve_MEC.declare_state('B_delta', residual='residual', bracket=(lower_bound, upper_bound))
         solve_MEC.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
-            maxiter=1000,
+            maxiter=100,
             iprint=True
         )
         solve_MEC.linear_solver = ScipyKrylov()
@@ -163,6 +151,7 @@ class MagnetMECModel(Model):
         ly      = self.declare_variable('L_j1', val=0.0435) # STATOR YOKE LENGTH OF MEC (CALLED L_j1 IN MATLAB & SIZING MODEL)
         sigma_air   = self.declare_variable('air_gap_depth', val=9.9469e-04) # AIR GAP DEPTH
         K_theta = self.declare_variable('K_theta', val=1.0835) # CARTER'S COEFF; CALLED K_theta IN MATLAB & SIZING MODEL
+        hm     = self.declare_variable('magnet_thickness', val=0.0040) # MAGNET THICKNESS
         A_f2     = self.declare_variable('A_f2', val=8.2743e-04) # CROSS SECTIONAL AREA OF MAGNET BRIDGE
         lambda_s = self.declare_variable('lambda_s', val=0.336e-6)
         bm      = self.declare_variable('bm', val= 0.0563) # ARC LENGTH OF MAGNET
@@ -171,16 +160,17 @@ class MagnetMECModel(Model):
 
         B_delta = solve_MEC(
             t1, b1, h_t1, alpha_i, tau, l_ef, hj1, ly, sigma_air, K_theta, 
-            A_f2, lambda_s, bm, phi_r, lambda_m
+            hm, A_f2, lambda_s, bm, phi_r, lambda_m
         )
 
         # B_delta, phi_air, phi_mag, H_y = solve_MEC(
         #     t1, b1, h_t1, alpha_i, tau, l_ef, hj1, ly, sigma_air, K_theta, 
-        #     A_f2, lambda_s, bm, phi_r, lambda_m, 
+        #     hm, A_f2, lambda_s, bm, phi_r, lambda_m, 
         #     expose=['phi_air', 'phi_mag', 'H_y']
         # )
 
         # --- MEC POST-PROCESSING ---
+        hm = self.declare_variable('hm')
         mu_r = self.declare_variable('mu_r')
         Am_r = self.declare_variable('Am_r')
         # phi_air = self.declare_variable('phi_air')
@@ -203,27 +193,4 @@ class MagnetMECModel(Model):
             (K_sigma_air - 1)*lambda_theta_standard
         )
 
-
-if __name__ == '__main__':
-    from TC1_motor_model.permeability.mu_fitting import permeability_fitting
-    file_name = 'Magnetic alloy, silicon core iron C.tab'
-    order=10
-
-    mu_fitting = permeability_fitting(
-        file_name=file_name,
-        test=True,
-    )
-
-    fit_coeff_dep_H = mu_fitting[0]
-    fit_coeff_dep_B = mu_fitting[1]
-
-    m = MagnetMECModel(
-        fit_coeff_dep_H=fit_coeff_dep_H,
-        fit_coeff_dep_B=fit_coeff_dep_B
-    )
-
-    sim = Simulator(m)
-    print(sim['B_delta'])
-    sim.run()
-    print(sim['B_delta'])
     
