@@ -153,21 +153,21 @@ class MagnetMECModel(Model):
         solve_MEC.linear_solver = ScipyKrylov()
 
         ''' --- DECLARING VARIABLES AGAIN --- '''
-        t1      = self.declare_variable('tooth_pitch', val=0.0244) # TOOTH PITCH
-        b1      = self.declare_variable('tooth_width', val=0.0128) # TOOTH WIDTH
-        h_t1      = self.declare_variable('slot_height', val=0.0180) # HEIGHT OF SLOT
-        alpha_i   = self.declare_variable('alpha_i', val=0.8091) # ELECTRICAL ANGLE PER SLOT
-        tau     = self.declare_variable('pole_pitch', val=.0732) # POLE PITCH
-        l_ef    = self.declare_variable('l_ef', val=.2069) # MAGNET LENGTH ALONG SHAFT (TYPICALLY STACK LENGTH)
-        hj1      = self.declare_variable('height_yoke_stator', val=0.0170) # YOKE HEIGHT IN STATOR
-        ly      = self.declare_variable('L_j1', val=0.0435) # STATOR YOKE LENGTH OF MEC (CALLED L_j1 IN MATLAB & SIZING MODEL)
-        sigma_air   = self.declare_variable('air_gap_depth', val=9.9469e-04) # AIR GAP DEPTH
-        K_theta = self.declare_variable('K_theta', val=1.0835) # CARTER'S COEFF; CALLED K_theta IN MATLAB & SIZING MODEL
-        A_f2     = self.declare_variable('A_f2', val=8.2743e-04) # CROSS SECTIONAL AREA OF MAGNET BRIDGE
-        lambda_s = self.declare_variable('lambda_s', val=0.336e-6)
-        bm      = self.declare_variable('bm', val= 0.0563) # ARC LENGTH OF MAGNET
-        phi_r   = self.declare_variable('phi_r', val=0.0130) 
-        lambda_m = self.declare_variable('lambda_m', val=1.9245e-06)
+        t1      = self.declare_variable('tooth_pitch') # TOOTH PITCH
+        b1      = self.declare_variable('tooth_width') # TOOTH WIDTH
+        h_t1      = self.declare_variable('slot_height') # HEIGHT OF SLOT
+        alpha_i   = self.declare_variable('alpha_i') # ELECTRICAL ANGLE PER SLOT
+        tau     = self.declare_variable('pole_pitch') # POLE PITCH
+        l_ef    = self.declare_variable('l_ef') # MAGNET LENGTH ALONG SHAFT (TYPICALLY STACK LENGTH)
+        hj1      = self.declare_variable('height_yoke_stator') # YOKE HEIGHT IN STATOR
+        ly      = self.declare_variable('L_j1') # STATOR YOKE LENGTH OF MEC (CALLED L_j1 IN MATLAB & SIZING MODEL)
+        sigma_air   = self.declare_variable('air_gap_depth') # AIR GAP DEPTH
+        K_theta = self.declare_variable('K_theta') # CARTER'S COEFF; CALLED K_theta IN MATLAB & SIZING MODEL
+        A_f2     = self.declare_variable('A_f2') # CROSS SECTIONAL AREA OF MAGNET BRIDGE
+        lambda_s = self.declare_variable('lambda_s')
+        bm      = self.declare_variable('bm') # ARC LENGTH OF MAGNET
+        phi_r   = self.declare_variable('phi_r') 
+        lambda_m = self.declare_variable('lambda_m')
 
         B_delta = solve_MEC(
             t1, b1, h_t1, alpha_i, tau, l_ef, hj1, ly, sigma_air, K_theta, 

@@ -20,9 +20,14 @@ class MTPAModel(Model):
         T_em = self.declare_variable('T_em', shape=(num_nodes,1))
         I_base = -phi_m/(L_d-L_q)
 
+        L_d_expanded = csdl.expand(L_d, (num_nodes,1))
+        L_q_expanded = csdl.expand(L_q, (num_nodes,1))
+        phi_m_expanded = csdl.expand(phi_m, (num_nodes,1))
+        I_base_expanded = csdl.expand(I_base, (num_nodes,1))
+
         T_em_star = self.register_output(
             'T_em_star',
-            T_em/(1.5*p*I_base)
+            T_em/(1.5*p*I_base_expanded)
         ) # NON-DIM TORQUE
 
         # DEPRESSED CUBIC METHOD
@@ -38,7 +43,7 @@ class MTPAModel(Model):
         # --- ADD POST-PROCESSING OF THE OUTPUT Iq_MTPA_star
         Iq_MTPA = self.register_output(
             'Iq_MTPA',
-            Iq_MTPA_star * I_base
+            Iq_MTPA_star * I_base_expanded
         ) # NEED TO DIMENSIONALIZE Iq_MTPA_star COMING FROM MTPA IMPLICIT SOLVER
 
 ''' 

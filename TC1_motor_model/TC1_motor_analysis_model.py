@@ -3,11 +3,11 @@ from csdl import Model, ScipyKrylov, NewtonSolver
 from csdl_om import Simulator
 import csdl
 
-from analysis_models.TC1_magnet_mec_model import MagnetMECModel
-from analysis_models.TC1_inductance_mec_model import InductanceModel
-from analysis_models.TC1_flux_weakening_model import FluxWeakeningModel
-from analysis_models.TC1_mtpa_model_new import MTPAModel
-from analysis_models.TC1_post_processing_model import PostProcessingModel
+from TC1_motor_model.analysis_models.TC1_magnet_mec_model import MagnetMECModel
+from TC1_motor_model.analysis_models.TC1_inductance_mec_model import InductanceModel
+from TC1_motor_model.analysis_models.TC1_flux_weakening_model import FluxWeakeningModel
+from TC1_motor_model.analysis_models.TC1_mtpa_model_new import MTPAModel
+from TC1_motor_model.analysis_models.TC1_post_processing_model import PostProcessingModel
 
 
 '''
@@ -56,62 +56,62 @@ class TC1MotorAnalysisModel(Model):
         em_torque = model.declare_variable('em_torque', val=500, shape=(num_nodes,1))  # state of implicit model
 
         model.add(
-            'magnet_MEC_model',
             MagnetMECModel(
                 fit_coeff_dep_H=fit_coeff_dep_H,
                 fit_coeff_dep_B=fit_coeff_dep_B,
-            )
+            ),
+            'magnet_MEC_model',
         )
 
         model.add(
-            'inductance_MEC_model',
             InductanceModel(
                 pole_pairs=p,
                 phases=m,
                 num_slots=Z,
                 fit_coeff_dep_H=fit_coeff_dep_H,
                 fit_coeff_dep_B=fit_coeff_dep_B,
-            )
+            ),
+            'inductance_MEC_model',
         )
 
         model.add(
-            'flux_weakening_model',
             FluxWeakeningModel(
                 pole_pairs=p,
                 V_lim=V_lim,
                 num_nodes=num_nodes
-            )
+            ),
+            'flux_weakening_model',
         )
 
         model.add(
-            'mtpa_model',
             MTPAModel(
                 pole_pairs=p,
                 num_nodes=num_nodes
-            )
+            ),
+            'mtpa_model',
         )
 
         model.add(
-            'post_processing_model',
             PostProcessingModel(
                 pole_pairs=p,
                 phases=m,
                 op_voltage=op_voltage,
                 V_lim=V_lim,
                 num_nodes=num_nodes
-            )
+            ),
+            'post_processing_model',
         )
 
         efficiency = model.declare_variable('efficiency', shape=(num_nodes,1)) # comes from post-processing
         
         residual = model.register_output(
             'residual',
-            T_load - efficiency*T_em
+            load_torque - efficiency*em_torque
         )
 
         solve_motor_analysis = self.create_implicit_operation(model)
         solve_motor_analysis.declare_state(
-            state='T_em',
+            state='em_torque',
             residual='residual',
             # not sure if bracket is necessary
         )
@@ -123,9 +123,9 @@ class TC1MotorAnalysisModel(Model):
         )
         solve_motor_analysis.linear_solver = ScipyKrylov()
 
-        T_load = self.declare_variable('T_load', shape=(num_nodes,1))
+        load_torque = self.declare_variable('load_torque', shape=(num_nodes,1))
         efficiency = self.declare_variable('efficiency', shape=(num_nodes,1))
-        T_em = solve_motor_analysis(T_load, efficiency)
+        T_em = solve_motor_analysis(load_torque, efficiency)
         # FROM HERE, THE OUTPUT POWER AND EFFICIENCY ARE PROPOGATED TO THE
         # BATTERY ANALYSIS MODELS
 

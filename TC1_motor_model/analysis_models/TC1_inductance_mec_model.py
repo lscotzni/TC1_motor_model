@@ -36,11 +36,10 @@ class InductanceModel(Model):
         self.fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
 
         # --- d-axis inductance ---
-        
         phi_air = self.declare_variable('phi_air')
         F_sum = self.declare_variable('F_sum')
         F_delta = self.declare_variable('F_delta')
-        f_i = self.declare_variable('frequency')
+        f_i = self.declare_variable('f_i')
         mu_0 = self.declare_variable('vacuum_permeability')
         l_ef = self.declare_variable('l_ef')
         kdp1 = self.declare_variable('kdp1')
@@ -60,7 +59,7 @@ class InductanceModel(Model):
 
         Kdp1 = self.declare_variable('Kdp1')
 
-        X_s1 = (2*p*m*l_ef*lambda_S1*Cx)/(l_ef*Z*Kdp1^2)
+        X_s1 = (2*p*m*l_ef*lambda_S1*Cx)/(l_ef*Z*Kdp1**2)
 
         s_total = 0.0128
         pole_pitch = self.declare_variable('pole_pitch')
@@ -150,7 +149,7 @@ class InductanceModel(Model):
 
         eps = 1e-5
         Inductance_MEC = self.create_implicit_operation(model)
-        Inductance_MEC.declare_state('phi_aq', residual='residual', bracket=(eps, phi_air_bracket - eps))
+        Inductance_MEC.declare_state('phi_aq', residual='inductance_residual', bracket=(eps, phi_air_bracket - eps))
         Inductance_MEC.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
             maxiter=100,
@@ -167,7 +166,6 @@ class InductanceModel(Model):
         mu_0 = self.declare_variable('mu_0')
         tooth_pitch = self.declare_variable('tooth_pitch')
         tooth_width = self.declare_variable('tooth_width')
-        kfe = self.declare_variable('lamination_coefficient')
         h_slot = self.declare_variable('slot_height')
         h_ys = self.declare_variable('height_yoke_stator')
         L_j1 = self.declare_variable('L_j1')
@@ -176,7 +174,7 @@ class InductanceModel(Model):
         
         phi_aq = Inductance_MEC(
             alpha_i, pole_pitch, l_ef,  K_theta, air_gap_depth, mu_0,
-            tooth_pitch, tooth_width, kfe, h_slot, h_ys, L_j1,
+            tooth_pitch, tooth_width, h_slot, h_ys, L_j1,
             I_d_temp, I_w,
         )
 

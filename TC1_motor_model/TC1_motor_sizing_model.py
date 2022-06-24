@@ -36,7 +36,7 @@ class TC1MotorSizingModel(Model):
         power_current = rated_power/(m*rated_phase_voltage)
 
         eta_0 = 0.88 # ASSUMED INITIAL EFFICIENCY; MATLAB CODE STARTS WITH 0.88
-        f_i = rated_omega*p/60 # RATED FREQUENCY
+        f_i = self.register_output('f_i', rated_omega*p/60) # RATED FREQUENCY
         B_air_gap_max = 0.85 # MAX VALUE OF B IN AIR GAP
         alpha_B = 0.7 # RATIO OF B_avg/B_max IN AIR GAP [0.66, 0.71]
         kwm = 1.11 # COEFFICIENT OF B-AIR GAP CURVE
@@ -118,11 +118,11 @@ class TC1MotorSizingModel(Model):
         L_j1 = self.register_output('L_j1', np.pi*(outer_stator_radius-h_ys) / (4*p)) # STATOR YOKE LENGTH FOR MAGNETIC CIRCUIT CALCULATION
 
         # --- WINDING FACTOR ---
-        y1 = self.register_output('y1', pole_pitch)
+        y1 = pole_pitch
         Kp1 = csdl.sin(y1*90*np.pi/pole_pitch/180) # INTEGRAL WINDING
 
         alpha = 360*p/Z # ELECTRICAL ANGLE PER SLOT
-        Kd1 = csdl.sin(q*alpha/2)/(q*csdl.sin(alpha/2))
+        Kd1 = np.sin(q*alpha/2)/(q*np.sin(alpha/2))
         Kdp1 = self.register_output('Kdp1', Kd1*Kp1)
 
         # --- MAGNET GEOMETRY ---
@@ -163,8 +163,11 @@ class TC1MotorSizingModel(Model):
         l_B = l_ef + 2*0.01 # straight length of coil
         l_coil = l_B + 1.5 * pole_pitch # length of half-turn
         
-        Rdc = 2 * rho * turns_per_phase * l_coil / \
+        Rdc = self.register_output(
+            'Rdc',
+            2 * rho * turns_per_phase * l_coil / \
             (a * Acu * conductors_per_slot) # DC RESISTANCE
+        )
 
         delta = (rho/(np.pi*mu_0*f_i)) ** 0.5
 
