@@ -10,6 +10,7 @@ class InductanceQImplicitModel(Model):
         self.parameters.declare('pole_pairs') # 6
         self.parameters.declare('phases') # 3
         self.parameters.declare('num_slots') # 36
+        self.parameters.declare('rated_current')
         self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
         self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
 
@@ -28,6 +29,7 @@ class InductanceQImplicitModel(Model):
         m = self.parameters['phases']
         p = self.parameters['pole_pairs']
         Z = self.parameters['num_slots']
+        rated_current = self.parameters['rated_current']
         self.fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         self.fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
         
@@ -79,6 +81,7 @@ class InductanceModel(Model):
         self.parameters.declare('pole_pairs') # 6
         self.parameters.declare('phases') # 3
         self.parameters.declare('num_slots') # 36
+        self.parameters.declare('rated_current')
         self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
         self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
 
@@ -86,6 +89,7 @@ class InductanceModel(Model):
         m = self.parameters['phases']
         p = self.parameters['pole_pairs']
         Z = self.parameters['num_slots']
+        rated_current = self.parameters['rated_current']
         self.fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         self.fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
 
@@ -197,6 +201,7 @@ class InductanceModel(Model):
             pole_pairs = p,
             phases=m,
             num_slots=Z,
+            rated_current = rated_current,
             fit_coeff_dep_H = self.fit_coeff_dep_H,
             fit_coeff_dep_B = self.fit_coeff_dep_B,
         )

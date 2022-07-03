@@ -34,6 +34,7 @@ class TC1MotorAnalysisModel(Model):
         self.parameters.declare('num_slots') # 36
         self.parameters.declare('op_voltage')
         self.parameters.declare('V_lim')
+        self.parameters.declare('rated_current')
         self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
         self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
         self.parameters.declare('num_nodes')
@@ -44,6 +45,7 @@ class TC1MotorAnalysisModel(Model):
         Z = self.parameters['num_slots']
         op_voltage = self.parameters['op_voltage']
         V_lim = self.parameters['V_lim']
+        rated_current = self.parameters['rated_current']
         fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
         num_nodes = self.parameters['num_nodes']
@@ -67,6 +69,7 @@ class TC1MotorAnalysisModel(Model):
                 pole_pairs=p,
                 phases=m,
                 num_slots=Z,
+                rated_current=rated_current,
                 fit_coeff_dep_H=fit_coeff_dep_H,
                 fit_coeff_dep_B=fit_coeff_dep_B,
             ),

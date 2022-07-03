@@ -21,6 +21,7 @@ class TC1MotorModel(Model):
         self.parameters.declare('num_slots') # 36
         self.parameters.declare('op_voltage')
         self.parameters.declare('V_lim')
+        self.parameters.declare('rated_current')
         self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
         self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
         self.parameters.declare('num_nodes')
@@ -32,6 +33,7 @@ class TC1MotorModel(Model):
         Z = self.parameters['num_slots']
         op_voltage = self.parameters['op_voltage']
         V_lim = self.parameters['V_lim']
+        rated_current = self.parameters['rated_current']
         fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
         num_nodes = self.parameters['num_nodes']
@@ -42,7 +44,7 @@ class TC1MotorModel(Model):
                 pole_pairs=p,
                 phases=m,
                 num_slots=Z,
-                rated_current=123
+                rated_current=rated_current
             ),
             'TC1_motor_sizing_model',
         )
@@ -68,12 +70,16 @@ class TC1MotorModel(Model):
                 num_slots=Z,
                 op_voltage=op_voltage,
                 V_lim=V_lim,
+                rated_current=rated_current,
                 fit_coeff_dep_H=fit_coeff_dep_H,
                 fit_coeff_dep_B=fit_coeff_dep_B,
                 num_nodes=num_nodes,
             ),
             'TC1_motor_analysis_model',
         )
+
+        self.declare_variable('efficiency')
+        self.declare_variable('input_power')
 
 
 # NOTE:
@@ -83,8 +89,7 @@ class TC1MotorModel(Model):
 if __name__ == '__main__':
     # PERMEABILITY FITTING IMPORT + GENERATION
     from TC1_motor_model.permeability.mu_fitting import permeability_fitting
-    file_name = 'TC1_motor_model/permeability/Magnetic_alloy_silicon_core_iron_C.tab'
-
+    file_name = 'Magnetic_alloy_silicon_core_iron_C.tab'
     mu_fitting = permeability_fitting(file_name=file_name)
 
     fit_coeff_dep_H = mu_fitting[0]
@@ -95,6 +100,7 @@ if __name__ == '__main__':
     Z = 36
     op_voltage = 300
     V_lim = 800
+    rated_current = 123
     num_nodes = 4 # dummy input
 
     m = TC1MotorModel(
@@ -103,13 +109,12 @@ if __name__ == '__main__':
         num_slots=Z,
         op_voltage=op_voltage,
         V_lim=V_lim,
+        rated_current=rated_current,
         fit_coeff_dep_H=fit_coeff_dep_H,
         fit_coeff_dep_B=fit_coeff_dep_B,
         num_nodes=num_nodes,
     )
 
     sim = Simulator(m)
-    # sim.run()
-    # print(sim['efficiency'])
-    print(sim['input_power'])
+
     sim.visualize_implementation()
