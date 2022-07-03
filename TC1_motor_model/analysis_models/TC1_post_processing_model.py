@@ -93,7 +93,8 @@ class PostProcessingModel(Model):
         P_loss = P_copper + P_eddy + P_h + P_stress + P_wo
         efficiency = P0/(P0+P_loss)
 
-        efficiency = self.register_output('efficency', efficiency)
+        efficiency = self.register_output('efficiency_pp', efficiency)
+        self.register_output('input_power_pp', P0 + P_loss)
         
         
 ''' ---- NOTES ----

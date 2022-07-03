@@ -22,8 +22,6 @@ the MTPA and flux weakening methods use phi_air, but I thought the phi in the
     equations should be the magnet flux (it's denoted with _m)
 << psi_m is the air gap flux, NOT the magnet >>
 
-Tem_1 FROM ZEYU'S CODE IS THE MAX VALUE OF THE EFFICIENCY MAP
-
 =========================================================================================
 # CADDEE NOTES
 CADDEE instantiation with some name 
@@ -42,21 +40,38 @@ add AllowableOperatingconditions as needed
 add the analytical brackets 
   - inductance MEC model *(DONE, NEEDS CHECKING)*
   - flux weakening *(DONE, BUT METHOD MAY CHANGE SO REVISIT)*
-change the MTPA model to just the analytical solution *(DONE)*
-  - bracketing method requires solving the analytical method to set up the upper bracket
-  - at that point, it's simpler to do the analytical method
-test the implicit operation models to check the variable bracket method
-  - REQUIRES AN UPDATE OF CSDL, CHECK VICTOR'S LAST MESSAGE
-set up the pip install method properly *(WORKS FOR NOW, GET DARSHAN'S FEEDBACK)*
-add the models into the proper places based on notes from meeting with Darshan
+add the models into the proper places based on notes from meeting with Darshan *DONE*
   - need to look at video to get a reference for how to set up models in CADDEE
 talk with Victor about the implicit operation
   - the bracketing isn't working (even without the variables as brackets); results fall outside of region
   - variables within brackets don't work either
-check the MEC model for magnet and the permeability fittings
-  - lack of convergence is strange
+  - also mention to Victor the problem with the negative signs in front of the CSDL variables
 
 verify the other implicit models
-VERIFY UNITS ON MASS CALCULATIONS (SEEM UNREALISTIC COMPARED TO DATA SHEETS)
-make pole pairs, slots and phases as input parameters for analysis models *DONE*
+  - still need to do MTPA and flux weakening
+VERIFY UNITS ON MASS CALCULATIONS (SEEM UNREALISTIC COMPARED TO DATA SHEETS) *DONE*
+  - Zeyu said they are correct and are in kg; look at new MATLAB code
 make sure that all analysis models have the proper info feeding to them via variables (like f_i)
+
+fix permeability fitting for B = f(H) *DONE* and write as a class
+make sure all connections and variables in the analysis models make sense
+
+DO ON TUESDAY 
+fix sizing for new methodology *NEED TO REVIEW REST OF CODE*
+  - now adjust the rest of the analysis model to reflect the changes (like not having I_w, etc.)
+  - 2 outputs from motor sizing: 
+    - vector with all the internal parameters called in analysis
+    - motor mass
+Add the torque vs mass fitting model
+  - need to wait for Zeyu to gather further data
+  - we will put the torque vs mass fitting into sizing
+  - dynamic torque limit will be part of the analysis model
+
+## TO DO ASAP
+  - LIMIT TORQUE CURVE (ANALYTICAL) -- DO ON SATURDAY
+  - TEST AND ADJUST THE ANALYSIS MODEL TO MAKE SURE INFORMATION IS BEING PROPAGATED PROPERLY
+  - CHECK OUTPUTS FROM SIZING GOING INTO ANALYSIS
+  - MESSAGE VICTOR ABOUT 2 THINGS
+    - VARIABLES AS BRACKETS (SEE IF HE RESOLVED ERROR FROM LAST TIME)
+    - HOW TO DEAL WITH MORE COMPLEX IMPLICIT METHODS
+      - DECLARING VARIABLE REMOVES IT AS AN OUTPUT VARIABLE SO IT CAN'T BE EXPOSED IN THE IMPLICIT METHOD

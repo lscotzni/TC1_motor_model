@@ -7,60 +7,43 @@ from csdl_om import Simulator
 
 class MTPAModel(Model):
     def initialize(self):
-        self.parameters.declare('bracket_lower')
-        self.parameters.declare('bracket_upper')
+        self.parameters.declare('pole_pairs') # 6
         self.parameters.declare('num_nodes')
-        self.parameters.declare('op_voltage')
 
     def define(self):
-        bracket_lb = self.parameters['bracket_lower']
-        bracket_ub = self.parameters['bracket_upper']
-
+        p = self.parameters['pole_pairs']
         num_nodes = self.parameters['num_nodes']
-        op_voltage = self.parameters['op_voltage']
 
-        p = self.declare_variable('pole_pairs')
         L_d = self.declare_variable('L_d')
         L_q = self.declare_variable('L_q')
         phi_m = self.declare_variable('phi_m')
         T_em = self.declare_variable('T_em', shape=(num_nodes,1))
         I_base = -phi_m/(L_d-L_q)
 
+        L_d_expanded = csdl.expand(L_d, (num_nodes,1))
+        L_q_expanded = csdl.expand(L_q, (num_nodes,1))
+        phi_m_expanded = csdl.expand(phi_m, (num_nodes,1))
+        I_base_expanded = csdl.expand(I_base, (num_nodes,1))
+
         T_em_star = self.register_output(
             'T_em_star',
-            T_em/(1.5*p*I_base)
+            T_em/(1.5*p*I_base_expanded)
         ) # NON-DIM TORQUE
 
-        model=Model()
-        Iq_MTPA_star = model.declare_variable('Iq_MTPA_star', shape=(num_nodes,1)) # NON-DIM Iq IN MTPA
-        residual = model.register_output(
-            'residual',
-            Iq_MTPA_star**4 + T_em_star*Iq_MTPA_star - T_em_star**2,
+        # DEPRESSED CUBIC METHOD
+        p_c = T_em_star**2
+        q_c = -T_em_star**2/8
+
+        m = (-q_c/2 + (q_c**2/4+p_c**3/27)**(1/2))**(1/3) + (-q_c/2 - (q_c**2/4+p_c**3/27)**(1/2))**(1/3)
+        Iq_MTPA_star = self.register_output(
+            'Iq_MTPA_star',
+            (-(2*m)**0.5 + (-(2*m-(T_em_star*2**0.5)/(m)**0.5))**0.5)/2
         )
 
-        solve_flux_weakening = self.create_implicit_operation(model)
-        solve_flux_weakening.declare_state('Iq_MTPA_star', 
-            residual='residual', 
-            bracket=(bracket_lb, bracket_ub)
-        )
-        solve_flux_weakening.nonlinear_solver = NewtonSolver(
-            solve_subsystems=False,
-            maxiter=100,
-            iprint=False,
-        )
-        solve_flux_weakening.linear_solver = ScipyKrylov()
-
-        L_d = self.declare_variable('L_d')
-        L_q = self.declare_variable('L_q')
-        phi_m = self.declare_variable('phi_m')
-        T_em_star = self.declare_variable('T_em_star')
-        Iq_MTPA_star = solve_flux_weakening(T_em_star)
-
-        # --- ADD POST-PROCESSING OF THE OUTPUT IQ
-        
+        # --- ADD POST-PROCESSING OF THE OUTPUT Iq_MTPA_star
         Iq_MTPA = self.register_output(
             'Iq_MTPA',
-            Iq_MTPA_star * I_base
+            Iq_MTPA_star * I_base_expanded
         ) # NEED TO DIMENSIONALIZE Iq_MTPA_star COMING FROM MTPA IMPLICIT SOLVER
 
 ''' 

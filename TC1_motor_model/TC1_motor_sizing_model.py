@@ -137,7 +137,7 @@ class TC1MotorSizingModel(Model):
 
         mu_r = Br/(mu_0*Hc) # RELATIVE MAGNET PERMEABILITY
 
-        Am_r = bm*l_ef # RADIAL CROSS SECTIONAL AREA OF MAGNET
+        Am_r = self.register_output('Am_r', bm*l_ef) # RADIAL CROSS SECTIONAL AREA OF MAGNET
         rho_m = 7.6 # MAGNET DENSITY (g/cm^3)
         mass_m = 2*p*bm*hm*l_ef*rho_m*1e3 # MAGNET MASS
 
@@ -149,7 +149,7 @@ class TC1MotorSizingModel(Model):
         alpha_i = self.register_output('alpha_i', alpha_p1+4/((pole_pitch/air_gap_depth)+(6/(1-alpha_p1))))
 
         Kf = self.register_output('Kf', 4*csdl.sin(alpha_i*np.pi/2)/np.pi) # COEFF OF MAGNETIC FLUX DENSITY ALONG AIR GAP
-        K_phi = self.register_output('K_phi', 8*csdl.sin(alpha_i*np.pi/2)/(np.pi**2*alpha_i)) # COEFF OF FLUX ALONG AIR GAP
+        K_phi = self.register_output('K_phi', 8.5*csdl.sin(alpha_i*np.pi/2)/(np.pi**2*alpha_i)) # COEFF OF FLUX ALONG AIR GAP
         K_theta1 = tooth_pitch*(4.4*air_gap_depth + 0.75*b_sb)/(tooth_pitch*(4.4*air_gap_depth + 0.75*b_sb)-b_sb**2)
         K_theta2 = 1 # no rotor slot
 

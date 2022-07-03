@@ -109,7 +109,7 @@ class FluxWeakeningModel(Model):
         solve_flux_weakening = self.create_implicit_operation(model)
         solve_flux_weakening.declare_state('Id_fw', 
             residual='residual', 
-            bracket=(I_d_hat, I_d_asymp)
+            # bracket=(I_d_hat, I_d_asymp)
         )
         solve_flux_weakening.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,

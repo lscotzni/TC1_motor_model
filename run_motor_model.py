@@ -4,7 +4,7 @@ from csdl_om import Simulator
 from csdl import Model
 import csdl
 
-from TC1_motor_model.TC1_motor_sizing_model import TC1MotorSizingModel
+from TC1_motor_model.TC1_motor_sizing_model_new import TC1MotorSizingModel
 from TC1_motor_model.TC1_motor_analysis_model import TC1MotorAnalysisModel
 
 class TC1MotorModel(Model):
@@ -36,22 +36,30 @@ class TC1MotorModel(Model):
         fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
         num_nodes = self.parameters['num_nodes']
 
-        omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,1))
-        load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,1))
-
-        gear_ratio = 4
-
-        omega = self.register_output('omega', omega_rotor * gear_ratio)
-        load_torque = self.register_output('load_torque', load_torque_rotor/gear_ratio)
-
+        # ---- MOTOR SIZING MODEL ----
         self.add(
             TC1MotorSizingModel(
                 pole_pairs=p,
                 phases=m,
-                num_slots=Z
+                num_slots=Z,
+                rated_current=123
             ),
             'TC1_motor_sizing_model',
         )
+
+        # ---- MOTOR ANALYSIS MODEL ----
+        omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,1))
+        load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,1))
+
+        # gearbox (very simple, not sure if this should be done differently)
+        gear_ratio = 4
+        omega = self.register_output('omega', omega_rotor * gear_ratio)
+        load_torque = self.register_output('load_torque', load_torque_rotor/gear_ratio)
+
+        # variables that will feed into the motor analysis model
+        self.declare_variable('Rdc') # DC resistance
+        self.declare_variable('motor_mass') # motor mass
+        self.declare_variable('motor_variables', shape=(23,1)) # array of motor sizing outputs
 
         self.add(
             TC1MotorAnalysisModel(
@@ -73,22 +81,35 @@ class TC1MotorModel(Model):
 #   - motor analysis model varies for the operating conditions of interest
 
 if __name__ == '__main__':
-    input_list = [6, 3, 36, 300, 800, 
-        np.ones(11), np.ones(3), 4
-    ]
-    for i, val in enumerate(input_list):
-        print(val)
+    # PERMEABILITY FITTING IMPORT + GENERATION
+    from TC1_motor_model.permeability.mu_fitting import permeability_fitting
+    file_name = 'TC1_motor_model/permeability/Magnetic_alloy_silicon_core_iron_C.tab'
+
+    mu_fitting = permeability_fitting(file_name=file_name)
+
+    fit_coeff_dep_H = mu_fitting[0]
+    fit_coeff_dep_B = mu_fitting[1]
+
+    p = 6
+    m = 3
+    Z = 36
+    op_voltage = 300
+    V_lim = 800
+    num_nodes = 4 # dummy input
 
     m = TC1MotorModel(
-        pole_pairs=input_list[0],
-        phases=input_list[1],
-        num_slots=input_list[2],
-        op_voltage=input_list[3],
-        V_lim=input_list[4],
-        fit_coeff_dep_H=input_list[5],
-        fit_coeff_dep_B=input_list[6],
-        num_nodes=input_list[7],
+        pole_pairs=p,
+        phases=m,
+        num_slots=Z,
+        op_voltage=op_voltage,
+        V_lim=V_lim,
+        fit_coeff_dep_H=fit_coeff_dep_H,
+        fit_coeff_dep_B=fit_coeff_dep_B,
+        num_nodes=num_nodes,
     )
 
-
     sim = Simulator(m)
+    # sim.run()
+    # print(sim['efficiency'])
+    print(sim['input_power'])
+    sim.visualize_implementation()
