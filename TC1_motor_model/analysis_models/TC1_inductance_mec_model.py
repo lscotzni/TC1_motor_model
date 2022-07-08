@@ -11,6 +11,7 @@ class InductanceQImplicitModel(Model):
         self.parameters.declare('phases') # 3
         self.parameters.declare('num_slots') # 36
         self.parameters.declare('rated_current')
+        self.parameters.declare('rated_d_current')
         self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
         self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
 
@@ -29,7 +30,8 @@ class InductanceQImplicitModel(Model):
         m = self.parameters['phases']
         p = self.parameters['pole_pairs']
         Z = self.parameters['num_slots']
-        rated_current = self.parameters['rated_current']
+        I_w = self.parameters['rated_current']
+        I_d_temp = self.parameters['rated_d_current']
         self.fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         self.fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
         
@@ -68,9 +70,8 @@ class InductanceQImplicitModel(Model):
             'I_q_temp',
             p*F_total_q/(0.9*m*Kaq*Kdp1*turns_per_phase)
          ) #  CURRENT AT Q-AXIS
-        I_d_temp = self.declare_variable('I_d_temp')
-        I_w = self.declare_variable('I_w')
-
+        
+        
         inductance_residual = self.register_output(
             'inductance_residual',
             I_d_temp**2 + I_q_temp**2 - I_w**2
@@ -90,14 +91,17 @@ class InductanceModel(Model):
         p = self.parameters['pole_pairs']
         Z = self.parameters['num_slots']
         rated_current = self.parameters['rated_current']
+        I_w = self.parameters['rated_current']
         self.fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         self.fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
+
+        rated_omega = 3000
+        f_i = rated_omega*p/60
 
         '''--------- d-axis inductance ---------'''
         phi_air = self.declare_variable('phi_air')
         F_total = self.declare_variable('F_total')
         F_delta = self.declare_variable('F_delta')
-        f_i = self.declare_variable('f_i')
         mu_0 = np.pi*4e-7
         l_ef = self.declare_variable('l_ef')
         Kdp1 = self.declare_variable('Kdp1')
@@ -147,11 +151,7 @@ class InductanceModel(Model):
         Kad = self.register_output('Kad', 1/Kf)
         Kaq = self.register_output('Kaq', 0.36/Kf)
 
-        I_w = self.declare_variable('I_w')
-        I_d_temp = self.register_output(
-            'I_d_temp',
-            I_w * np.sin(0.6283)
-        )
+        I_d_temp = I_w * np.sin(0.6283)
         F_ad = 0.35*m*Kad*Kdp1*W_1*I_d_temp/p
         # self.register_output('F_ad', F_ad) # DELETE
         hm = 0.004 # MAGNET THICKNESS
@@ -201,7 +201,8 @@ class InductanceModel(Model):
             pole_pairs = p,
             phases=m,
             num_slots=Z,
-            rated_current = rated_current,
+            rated_current = I_w,
+            rated_d_current = I_d_temp,
             fit_coeff_dep_H = self.fit_coeff_dep_H,
             fit_coeff_dep_B = self.fit_coeff_dep_B,
         )
@@ -233,13 +234,11 @@ class InductanceModel(Model):
         Kdp1 = self.declare_variable('Kdp1')
         turns_per_phase = self.declare_variable('turns_per_phase')
         L_j1 = self.declare_variable('L_j1')
-        I_d_temp = self.declare_variable('I_d_temp')
-        I_w = self.declare_variable('I_w')
         
         phi_aq, I_q_temp = Inductance_MEC(
             alpha_i, pole_pitch, l_ef,  K_theta, air_gap_depth,
             tooth_pitch, tooth_width, h_slot, h_ys, Kaq, Kdp1, 
-            turns_per_phase, L_j1, I_d_temp, I_w,
+            turns_per_phase, L_j1,
             expose=['I_q_temp']
         )
 

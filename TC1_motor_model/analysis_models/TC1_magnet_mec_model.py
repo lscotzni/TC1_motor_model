@@ -186,7 +186,7 @@ class MagnetMECModel(Model):
         # --- MEC POST-PROCESSING ---
         mu_0 = np.pi*4e-7
         hm = 0.004 # MAGNET THICKNESS
-        mu_r = self.declare_variable('mu_r')
+        mu_r = 1.05
         Am_r = self.declare_variable('Am_r')
 
         K_sigma_air = self.register_output(

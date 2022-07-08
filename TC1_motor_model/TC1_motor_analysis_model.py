@@ -39,6 +39,13 @@ class TC1MotorAnalysisModel(Model):
         self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
         self.parameters.declare('num_nodes')
 
+        self.motor_variable_names = [
+            'outer_stator_radius', 'pole_pitch', 'tooth_pitch', 'air_gap_depth', 'l_ef',
+            'rotor_radius', 'turns_per_phase', 'Acu',  'tooth_width', 'height_yoke_stator',
+            'slot_bottom_width', 'slot_height', 'slot_width_inner', 'Tau_y', 'L_j1', 'Kdp1',
+            'bm', 'Am_r', 'phi_r', 'lambda_m', 'alpha_i', 'Kf', 'K_phi', 'K_theta', 'A_f2',
+        ]
+
     def define(self):
         m = self.parameters['phases']
         p = self.parameters['pole_pairs']
@@ -50,11 +57,19 @@ class TC1MotorAnalysisModel(Model):
         fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
         num_nodes = self.parameters['num_nodes']
         
-        omega = self.declare_variable('omega', shape=(num_nodes,1))
-        load_torque = self.declare_variable('load_torque', shape=(num_nodes,1))
-        motor_variables = self.declare_variable('motor_variables', shape=(23,1)) # array of motor sizing outputs
+        motor_variables = self.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
+        Rdc = self.declare_variable('Rdc')
 
-        self.register_output('outer_stator_radius', motor_variables[0,0])
+        for i in range(motor_variables.shape[0]):
+            self.register_output(self.motor_variable_names[i], motor_variables[i])
+
+        omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,1))
+        load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,1))
+
+        # gearbox (very simple, not sure if this should be done differently)
+        gear_ratio = 4
+        omega = self.register_output('omega', omega_rotor * gear_ratio)
+        load_torque = self.register_output('load_torque', load_torque_rotor/gear_ratio)
 
         self.add(
             MagnetMECModel(
@@ -91,7 +106,7 @@ class TC1MotorAnalysisModel(Model):
         omega = model.declare_variable('omega', shape=(num_nodes,1))
         em_torque = model.declare_variable('em_torque', val=500, shape=(num_nodes,1))  # state of implicit model
         model.declare_variable('Rdc', val=10) # DC resistance
-        model.declare_variable('motor_variables', shape=(23,1)) # array of motor sizing outputs
+        model.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
 
         # declare variables here
         
@@ -154,7 +169,7 @@ class TC1MotorAnalysisModel(Model):
 
         load_torque = self.declare_variable('load_torque', shape=(num_nodes,1))
         Rdc = self.declare_variable('Rdc', val=5) # DC resistance
-        motor_variables = self.declare_variable('motor_variables', shape=(23,1)) # array of motor sizing outputs
+        motor_variables = self.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
 
         T_em, efficiency, input_power = solve_motor_analysis(load_torque, Rdc, motor_variables, 
             expose=['efficiency', 'input_power']

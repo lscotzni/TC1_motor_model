@@ -1,7 +1,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 from csdl_om import Simulator
-from csdl import Model
+from csdl import Model, GraphRepresentation
 import csdl
 
 from TC1_motor_model.TC1_motor_sizing_model_new import TC1MotorSizingModel
@@ -38,6 +38,9 @@ class TC1MotorModel(Model):
         fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
         num_nodes = self.parameters['num_nodes']
 
+        D_i = self.declare_variable('D_i') # inner radius of stator
+        L = self.declare_variable('L') # effective length of motor
+
         # ---- MOTOR SIZING MODEL ----
         self.add(
             TC1MotorSizingModel(
@@ -53,15 +56,9 @@ class TC1MotorModel(Model):
         omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,1))
         load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,1))
 
-        # gearbox (very simple, not sure if this should be done differently)
-        gear_ratio = 4
-        omega = self.register_output('omega', omega_rotor * gear_ratio)
-        load_torque = self.register_output('load_torque', load_torque_rotor/gear_ratio)
-
         # variables that will feed into the motor analysis model
         self.declare_variable('Rdc') # DC resistance
-        self.declare_variable('motor_mass') # motor mass
-        self.declare_variable('motor_variables', shape=(23,1)) # array of motor sizing outputs
+        self.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
 
         self.add(
             TC1MotorAnalysisModel(
@@ -78,8 +75,8 @@ class TC1MotorModel(Model):
             'TC1_motor_analysis_model',
         )
 
-        self.declare_variable('efficiency')
-        self.declare_variable('input_power')
+        self.declare_variable('efficiency', shape=(num_nodes,1))
+        self.declare_variable('input_power', shape=(num_nodes,1))
 
 
 # NOTE:
@@ -98,8 +95,8 @@ if __name__ == '__main__':
     p = 6
     m = 3
     Z = 36
-    op_voltage = 300
-    V_lim = 800
+    op_voltage = 800
+    V_lim = 1300
     rated_current = 123
     num_nodes = 4 # dummy input
 
@@ -115,6 +112,40 @@ if __name__ == '__main__':
         num_nodes=num_nodes,
     )
 
-    sim = Simulator(m)
-
+    rep = GraphRepresentation(m)
+    sim = Simulator(rep)
+    sim['D_i'] = 0.3723
+    sim['L'] = 0.2755
+    sim.run()
+    print('outer_stator_radius: ', sim['outer_stator_radius'])
+    print('pole_pitch: ', sim['pole_pitch'])
+    print('tooth_pitch: ', sim['tooth_pitch'])
+    print('air_gap_depth: ', sim['air_gap_depth'])
+    print('l_ef: ', sim['l_ef'])
+    print('rotor_radius: ', sim['rotor_radius'])
+    print('turns_per_phase: ', sim['turns_per_phase'])
+    print('Acu: ', sim['Acu'])
+    print('tooth_width: ', sim['tooth_width'])
+    print('height_yoke_stator: ', sim['height_yoke_stator'])
+    print('slot_bottom_width: ', sim['slot_bottom_width'])
+    print('slot_height: ', sim['slot_height'])
+    print('slot_width_inner: ', sim['slot_width_inner'])
+    print('Tau_y: ', sim['Tau_y'])
+    print('L_j1: ', sim['L_j1'])
+    print('Kdp1: ', sim['Kdp1'])
+    print('bm: ', sim['bm'])
+    print('Am_r: ', sim['Am_r'])
+    print('phi_r: ', sim['phi_r'])
+    print('lambda_m: ', sim['lambda_m'])
+    print('alpha_i: ', sim['alpha_i'])
+    print('Kf: ', sim['Kf'])
+    print('K_phi: ', sim['K_phi'])
+    print('K_theta: ', sim['K_theta'])
+    print('A_f2: ', sim['A_f2'])
+    print('Rdc: ', sim['Rdc'])
+    print('Rdc1: ', sim['Rdc1'])
+    print('Rac (incorrect): ', sim['Rac'])
+    print('motor mass: ', sim['motor_mass'])
+    print('----------')
+    print(sim['motor_variables'])
     sim.visualize_implementation()
