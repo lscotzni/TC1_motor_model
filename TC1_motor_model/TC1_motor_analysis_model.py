@@ -175,7 +175,7 @@ class TC1MotorAnalysisModel(Model):
         sigma_c = 2e6 # bulk conductivity (2000000 S/m)
         l_ef = model.declare_variable('l_ef')
         D1 = model.declare_variable('outer_stator_radius')
-        D_i = model.declare_variable('inner_stator_radius')
+        D_i = model.declare_variable('D_i')
         Acu = model.declare_variable('Acu')
         B_delta = model.declare_variable('B_delta')
         B_delta_expanded = csdl.expand(B_delta, (num_nodes,))
@@ -225,10 +225,6 @@ class TC1MotorAnalysisModel(Model):
         )
         solve_motor_analysis.linear_solver = ScipyKrylov()
 
-        # load_torque = self.declare_variable('load_torque', shape=(num_nodes,))
-        # Rdc = self.declare_variable('Rdc', val=5) # DC resistance
-        # motor_variables = self.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
-
         load_torque = self.declare_variable('load_torque', shape=(num_nodes,))
         omega = self.declare_variable('omega', shape=(num_nodes,))
         Rdc = self.declare_variable('Rdc')
@@ -236,11 +232,10 @@ class TC1MotorAnalysisModel(Model):
         L_d = self.declare_variable('L_d')
         L_q = self.declare_variable('L_q')
         phi_air = self.declare_variable('phi_air')
-        D_i = self.declare_variable('inner_stator_radius')
+        D_i = self.declare_variable('D_i')
 
         em_torque, efficiency, input_power, current_amplitude = solve_motor_analysis(
-            load_torque, omega, Rdc, motor_variables, L_d, L_q, phi_air, 
-            D_i,     
+            load_torque, omega, Rdc, motor_variables, L_d, L_q, phi_air, D_i,     
             expose=['efficiency', 'input_power', 'current_amplitude']
         )
         # FROM HERE, THE OUTPUT POWER AND EFFICIENCY ARE PROPOGATED TO THE
