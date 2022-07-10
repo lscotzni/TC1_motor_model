@@ -22,7 +22,7 @@ class MaxTorqueImplicitModelTest(Model):
         Ld = self.declare_variable('L_d')
         Lq = self.declare_variable('L_q')
         omega = self.declare_variable('omega')
-        phi = self.declare_variable('phi_m')
+        phi = self.declare_variable('phi_air')
 
         T_lim = self.declare_variable('T_lim') # STATE
 
@@ -80,7 +80,7 @@ class MaxTorqueTest(Model):
         # Ld = self.declare_variable('L_d')
         # Lq = self.declare_variable('L_q')
         # omega = self.declare_variable('omega')
-        # phi = self.declare_variable('phi_m')
+        # phi = self.declare_variable('phi_air')
 
         max_torque_implicit_model = MaxTorqueImplicitModelTest(
             pole_pairs=p,
@@ -105,7 +105,7 @@ class MaxTorqueTest(Model):
         Ld = self.declare_variable('L_d')
         Lq = self.declare_variable('L_q')
         omega = self.declare_variable('omega')
-        phi = self.declare_variable('phi_m')
+        phi = self.declare_variable('phi_air')
 
         T_lim= max_torque_implicit_op(
             R, Ld, Lq, omega, phi
@@ -133,13 +133,13 @@ if __name__ == '__main__':
     # sim['L_d'] = 0.0043
     # sim['L_q'] = 0.0126
     # sim['omega'] = 1083
-    # sim['phi_m'] = 1.2952
+    # sim['phi_air'] = 1.2952
 
     sim['Rdc'] = 0.0313
     sim['L_d'] = 0.0011
     sim['L_q'] = 0.0022
     sim['omega'] = 1960
-    sim['phi_m'] = 0.0153
+    sim['phi_air'] = 0.0153
     # sim['T_lim'] = 2203.963
 
     sim.run()

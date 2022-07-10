@@ -119,11 +119,11 @@ class MagnetMECModel(Model):
         phi_r = MECmodel.declare_variable('phi_r') 
         lambda_m = MECmodel.declare_variable('lambda_m')
 
-        phi_m = phi_r - F_m*lambda_m
+        phi_air = phi_r - F_m*lambda_m
 
         residual = MECmodel.register_output(
             'residual',
-            phi_m - phi_mag
+            phi_air - phi_mag
         )
 
         ''' --- SETTING UP NONLINEAR SOLVER --- '''

@@ -68,10 +68,13 @@ Add the torque vs mass fitting model
   - dynamic torque limit will be part of the analysis model
 
 ## TO DO ASAP
-  - LIMIT TORQUE CURVE (ANALYTICAL) -- DO ON SATURDAY
   - TEST AND ADJUST THE ANALYSIS MODEL TO MAKE SURE INFORMATION IS BEING PROPAGATED PROPERLY
   - CHECK OUTPUTS FROM SIZING GOING INTO ANALYSIS
   - MESSAGE VICTOR ABOUT 2 THINGS
-    - VARIABLES AS BRACKETS (SEE IF HE RESOLVED ERROR FROM LAST TIME)
     - HOW TO DEAL WITH MORE COMPLEX IMPLICIT METHODS
       - DECLARING VARIABLE REMOVES IT AS AN OUTPUT VARIABLE SO IT CAN'T BE EXPOSED IN THE IMPLICIT METHOD
+
+- add max torque model to sizing
+  - need to revisit fitting, but set up the model in sizing just so that coefficeints are the last thing needed
+  - push this update to the github and let Darshan know
+- fix variables in implicit model for T_em

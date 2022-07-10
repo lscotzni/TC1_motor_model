@@ -4,7 +4,7 @@ from csdl_om import Simulator
 from csdl import Model, GraphRepresentation
 import csdl
 
-from TC1_motor_model.TC1_motor_sizing_model_new import TC1MotorSizingModel
+from TC1_motor_model.TC1_motor_sizing_model import TC1MotorSizingModel
 from TC1_motor_model.TC1_motor_analysis_model import TC1MotorAnalysisModel
 
 class TC1MotorModel(Model):
@@ -51,10 +51,12 @@ class TC1MotorModel(Model):
             ),
             'TC1_motor_sizing_model',
         )
+        # outputs: resistance, mass, motor_variables
+        self.declare_variable('T_em_max')
 
         # ---- MOTOR ANALYSIS MODEL ----
-        omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,1))
-        load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,1))
+        omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,))
+        load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,))
 
         # variables that will feed into the motor analysis model
         self.declare_variable('Rdc') # DC resistance
@@ -75,8 +77,9 @@ class TC1MotorModel(Model):
             'TC1_motor_analysis_model',
         )
 
-        self.declare_variable('efficiency', shape=(num_nodes,1))
-        self.declare_variable('input_power', shape=(num_nodes,1))
+        self.declare_variable('efficiency', shape=(num_nodes,))
+        self.declare_variable('input_power', shape=(num_nodes,))
+        self.declare_variable('current_amplitude', shape=(num_nodes,))
 
 
 # NOTE:
@@ -117,35 +120,36 @@ if __name__ == '__main__':
     sim['D_i'] = 0.3723
     sim['L'] = 0.2755
     sim.run()
-    print('outer_stator_radius: ', sim['outer_stator_radius'])
-    print('pole_pitch: ', sim['pole_pitch'])
-    print('tooth_pitch: ', sim['tooth_pitch'])
-    print('air_gap_depth: ', sim['air_gap_depth'])
-    print('l_ef: ', sim['l_ef'])
-    print('rotor_radius: ', sim['rotor_radius'])
-    print('turns_per_phase: ', sim['turns_per_phase'])
-    print('Acu: ', sim['Acu'])
-    print('tooth_width: ', sim['tooth_width'])
-    print('height_yoke_stator: ', sim['height_yoke_stator'])
-    print('slot_bottom_width: ', sim['slot_bottom_width'])
-    print('slot_height: ', sim['slot_height'])
-    print('slot_width_inner: ', sim['slot_width_inner'])
-    print('Tau_y: ', sim['Tau_y'])
-    print('L_j1: ', sim['L_j1'])
-    print('Kdp1: ', sim['Kdp1'])
-    print('bm: ', sim['bm'])
-    print('Am_r: ', sim['Am_r'])
-    print('phi_r: ', sim['phi_r'])
-    print('lambda_m: ', sim['lambda_m'])
-    print('alpha_i: ', sim['alpha_i'])
-    print('Kf: ', sim['Kf'])
-    print('K_phi: ', sim['K_phi'])
-    print('K_theta: ', sim['K_theta'])
-    print('A_f2: ', sim['A_f2'])
-    print('Rdc: ', sim['Rdc'])
-    print('Rdc1: ', sim['Rdc1'])
-    print('Rac (incorrect): ', sim['Rac'])
-    print('motor mass: ', sim['motor_mass'])
-    print('----------')
-    print(sim['motor_variables'])
+    # print('outer_stator_radius: ', sim['outer_stator_radius'])
+    # print('pole_pitch: ', sim['pole_pitch'])
+    # print('tooth_pitch: ', sim['tooth_pitch'])
+    # print('air_gap_depth: ', sim['air_gap_depth'])
+    # print('l_ef: ', sim['l_ef'])
+    # print('rotor_radius: ', sim['rotor_radius'])
+    # print('turns_per_phase: ', sim['turns_per_phase'])
+    # print('Acu: ', sim['Acu'])
+    # print('tooth_width: ', sim['tooth_width'])
+    # print('height_yoke_stator: ', sim['height_yoke_stator'])
+    # print('slot_bottom_width: ', sim['slot_bottom_width'])
+    # print('slot_height: ', sim['slot_height'])
+    # print('slot_width_inner: ', sim['slot_width_inner'])
+    # print('Tau_y: ', sim['Tau_y'])
+    # print('L_j1: ', sim['L_j1'])
+    # print('Kdp1: ', sim['Kdp1'])
+    # print('bm: ', sim['bm'])
+    # print('Am_r: ', sim['Am_r'])
+    # print('phi_r: ', sim['phi_r'])
+    # print('lambda_m: ', sim['lambda_m'])
+    # print('alpha_i: ', sim['alpha_i'])
+    # print('Kf: ', sim['Kf'])
+    # print('K_phi: ', sim['K_phi'])
+    # print('K_theta: ', sim['K_theta'])
+    # print('A_f2: ', sim['A_f2'])
+    # print('Rdc: ', sim['Rdc'])
+    # print('Rdc1: ', sim['Rdc1'])
+    # print('Rac (incorrect): ', sim['Rac'])
+    # print('motor mass: ', sim['motor_mass'])
+    # print('----------')
+    # print(sim['motor_variables'])
+    print('input power:', sim['input_power'])
     sim.visualize_implementation()
