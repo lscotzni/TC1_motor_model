@@ -4,7 +4,52 @@ from csdl_om import Simulator
 from csdl import Model
 import csdl
 
-from TC1_motor_model.motor_submodels.TC1_max_torque_model import MaxTorqueModel
+class TorqueMassModel(Model):
+    '''
+    INPUTS TO THIS MODEL:
+        - constant max torque (before base speed)
+        - R, Ld, Lq, p,
+        - omega for each operating condition
+
+    OUTPUTS OF THIS MODEL:
+        - base speed
+        - max torque at each value of omega
+    '''
+    def initialize(self):
+        self.parameters.declare('fitting_order')
+        self.fitting_coeff = {
+            '0':[1],
+            '1':[26.0489, -112.1432],
+            '2':[0.4840, 3.3169, 60.8142],
+            '3':[1, 1, 1 ,1],
+            '4':[1, 1, 1, 1, 1],
+        }
+
+    def fit_torque_to_mass(self, motor_mass):
+        fitting_coeff = self.fitting_coeff.get(str(self.order))
+
+        # torque_fitting = []
+        # for i, val in enumerate(fitting_coeff):
+        #     print(i, val)
+        #     torque_fitting.append(val * motor_mass**i)
+        # return csdl.sum(*torque_fitting)
+
+        torque_fitting_array = self.create_output(
+            'torque_fitting_array',
+            shape=(self.order + 1,)
+        )
+        for i, val in enumerate(fitting_coeff):
+            torque_fitting_array[i] = val * motor_mass**(self.order-i)
+        return csdl.sum(torque_fitting_array)
+
+    def define(self):
+        self.order = self.parameters['fitting_order']        
+        motor_mass = self.declare_variable('motor_mass')
+
+        T_em_max = self.register_output(
+            'T_em_max',
+            self.fit_torque_to_mass(motor_mass)
+        )
 
 class TC1MotorSizingModel(Model):
     '''
@@ -190,19 +235,20 @@ class TC1MotorSizingModel(Model):
             (a * Acu * conductors_per_slot) # DC RESISTANCE
         )
 
-        Rdc1 = self.register_output(
-            'Rdc1',
-            2*rho*turns_per_phase*l_coil / \
-            (a*np.pi/2*d_coil**2) # DC RESISTANCE
-        )
-        # ZEYU'S CODE USES Rdc1 AND Rdc IN DIFFERENT PLACES; ASK ZEYU ABOUT THIS
+        if False:
+            Rdc1 = self.register_output(
+                'Rdc1',
+                2*rho*turns_per_phase*l_coil / \
+                (a*np.pi/2*d_coil**2) # DC RESISTANCE
+            )
+            # ZEYU'S CODE USES Rdc1 AND Rdc IN DIFFERENT PLACES; ASK ZEYU ABOUT THIS
 
-        delta = (rho/(np.pi*mu_0*f_i)) ** 0.5
+            delta = (rho/(np.pi*mu_0*f_i)) ** 0.5
 
-        Rac = self.register_output(
-            'Rac',
-            Rdc / ((2*delta/d_coil) - (delta/d_coil)**2)
-        ) # NOT ACCURATE AND INCORRECT COMPARED TO ZEYU'S CODE
+            Rac = self.register_output(
+                'Rac',
+                Rdc / ((2*delta/d_coil) - (delta/d_coil)**2)
+            ) # NOT ACCURATE AND INCORRECT COMPARED TO ZEYU'S CODE
 
         C = 1.05
         rho_cu = 8.9 # mass density of copper in g/cm^3
@@ -258,6 +304,6 @@ class TC1MotorSizingModel(Model):
         motor_variables[24] = A_f2
 
         self.add(
-            MaxTorqueModel(fitting_order=2),
+            TorqueMassModel(fitting_order=1),
             'max_torque_model'
         ) # GIVES US T_em_max AS A FUNCTION OF MASS

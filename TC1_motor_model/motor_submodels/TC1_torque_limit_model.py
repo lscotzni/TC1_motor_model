@@ -90,21 +90,26 @@ class TorqueLimitModel(Model):
         R = self.declare_variable('Rdc')
         Ld = self.declare_variable('L_d')
         Lq = self.declare_variable('L_q')
-        omega = self.declare_variable('omega')
-        phi = self.declare_variable('phi_air')
+        omega = self.declare_variable('omega', shape=(num_nodes,))
+        PsiF = self.declare_variable('PsiF')
 
-        R_expanded = csdl.expand(R, (num_nodes,))
-        L_d_expanded = csdl.expand(Ld, (num_nodes,))
-        L_q_expanded = csdl.expand(Lq, (num_nodes,))
-        phi_air_expanded = csdl.expand(phi, (num_nodes,))
+        # R_expanded = csdl.expand(R, (num_nodes,))
+        # L_d_expanded = csdl.expand(Ld, (num_nodes,))
+        # L_q_expanded = csdl.expand(Lq, (num_nodes,))
+        # PsiF_expanded = csdl.expand(PsiF, (num_nodes,))
+
+        R_expanded = self.declare_variable('R_expanded', shape=(num_nodes,))
+        L_d_expanded = self.declare_variable('L_d_expanded', shape=(num_nodes,))
+        L_q_expanded = self.declare_variable('L_q_expanded', shape=(num_nodes,))
+        PsiF_expanded = self.declare_variable('PsiF_expanded', shape=(num_nodes,))
 
         # COMPILING COEFFICIENTS FROM ORIGINAL I_q FLUX WEAKENING EQUATION
         den = 3*p*(L_d_expanded-L_q_expanded)
-        a = den**2*((omega*L_q_expanded)**2 + R**2)
+        a = den**2*((omega*L_q_expanded)**2 + R_expanded**2)
         # c_1 and c_2 below make up coefficients for c = A*T + B
         c_1 = 12*p*omega*R_expanded*(L_d_expanded-L_q_expanded)**2 # labeled A in notes
-        c_2 = (3*p*phi_air_expanded)**2*(R_expanded**2 + (omega*L_q_expanded)**2) - (V_lim*den)**2 # labeled B in notes
-        d = -12*p*phi_air_expanded*(omega**2*L_d_expanded*L_q_expanded + R_expanded**2) # coefficient without torque
+        c_2 = (3*p*PsiF_expanded)**2*(R_expanded**2 + (omega*L_q_expanded)**2) - (V_lim*den)**2 # labeled B in notes
+        d = -12*p*PsiF_expanded*(omega**2*L_d_expanded*L_q_expanded + R_expanded**2) # coefficient without torque
         e = 4*((omega*L_d_expanded)**2 + R_expanded**2) # coefficient without torque
 
         # COMBINED COEFFICIENTS FOR QUARTIC TORQUE EQUATION (DISCRIMINANT = 0 CASE)
@@ -132,15 +137,23 @@ class TorqueLimitModel(Model):
         # asdf[5] = theta
 
         # NEED TO FIX SHAPES HERE
-        cubic_roots = self.create_output('cubic_roots', shape=(3,))
-        cubic_roots[0] = -1 * (2*(P1)**0.5*csdl.cos(theta/3)) - a_cubic/3
-        cubic_roots[1] = -1 * (2*(P1)**0.5*csdl.cos((theta+2*np.pi)/3)) - a_cubic/3
-        cubic_roots[2] = -1 * (2*(P1)**0.5*csdl.cos((theta-2*np.pi)/3)) - a_cubic/3
+        root1 = -1 * (2*(P1)**0.5*csdl.cos(theta/3)) - a_cubic/3
+        root2 = -1 * (2*(P1)**0.5*csdl.cos((theta+2*np.pi)/3)) - a_cubic/3
+        root3 = -1 * (2*(P1)**0.5*csdl.cos((theta-2*np.pi)/3)) - a_cubic/3
+
+        cubic_roots = self.create_output('cubic_roots', shape=(num_nodes, 3))
+        cubic_roots[:, 0] = csdl.reshape(root1, (num_nodes, 1))
+        cubic_roots[:, 1] = csdl.reshape(root2, (num_nodes, 1))
+        cubic_roots[:, 2] = csdl.reshape(root3, (num_nodes, 1))
+
+        # cubic_roots[:, 0] = root1[:]
+        # cubic_roots[:, 1] = root2[:]
+        # cubic_roots[:, 2] = root3[:]
 
         max_cubic_root = csdl.max(cubic_roots)
         max_cubic_root = self.register_output(
             'max_cubic_root',
-            csdl.max(cubic_roots) # LOWER END OF BRACKET FOR QUARTIC EQUATION
+            csdl.max(cubic_roots, axis=1) # LOWER END OF BRACKET FOR QUARTIC EQUATION
         )
         upper_quartic_bracket = max_cubic_root * 10.0
         upper_quartic_bracket = self.register_output(
@@ -158,14 +171,14 @@ if __name__ == '__main__':
     L_d = 0.0011
     L_q = 0.0022
     omega = 1100
-    phi_air = 0.5494 # 0.0153 OR 0.5494
+    PsiF = 0.5494 # 0.0153 OR 0.5494
 
     # V_lim = 3000
     # Rdc = 0.091
     # L_d = 0.0043
     # L_q = 0.0126
     # omega = 2000
-    # phi_air = 1.2952
+    # PsiF = 1.2952
 
     m = TorqueLimitModel(
         pole_pairs=p,
@@ -181,7 +194,7 @@ if __name__ == '__main__':
     sim['L_d'] = L_d
     sim['L_q'] = L_q
     sim['omega'] = omega
-    sim['phi_air'] = phi_air
+    sim['PsiF'] = PsiF
 
     sim.run()
     # print('before visualize_implementation:')

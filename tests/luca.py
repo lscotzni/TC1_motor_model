@@ -45,6 +45,7 @@ rep = GraphRepresentation(
     ExampleWithSubsystemsBracketedArrayVariableBrackets())
 sim = Simulator(rep)
 sim.run()
+sim.visualize_implementation()
 
 print('y', sim['y'].shape)
 print(sim['y'])

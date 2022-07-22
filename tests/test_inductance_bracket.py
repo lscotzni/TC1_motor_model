@@ -2,11 +2,11 @@ import numpy as np
 import csdl
 from csdl_om import Simulator
 
-from TC1_motor_model.analysis_models.TC1_inductance_mec_model import InductanceModel
+from TC1_motor_model.motor_submodels.TC1_inductance_mec_model import InductanceModel
 from TC1_motor_model.permeability.mu_fitting import permeability_fitting
 
 # SETUP PERMEABILITY FITTING
-file_name = 'TC1_motor_model/permeability/Magnetic alloy, silicon core iron C.tab'
+file_name = 'Magnetic_alloy_silicon_core_iron_C.tab'
 order=10
 
 mu_fitting = permeability_fitting(
@@ -23,16 +23,18 @@ m = InductanceModel(
     pole_pairs=6,
     phases=3,
     num_slots=36,
+    rated_current=123,
     fit_coeff_dep_H=fit_coeff_dep_H,
     fit_coeff_dep_B=fit_coeff_dep_B,
 )
 
-sim = Simulator(m)
+rep = csdl.GraphRepresentation(m)
+
+sim = Simulator(rep)
 # EXISTS IN THE INDUCTANCE MODEL
-sim['phi_air'] = 0.0151
+sim['phi_air'] = 0.01512911
 sim['F_total'] = 1.4415e+03
 sim['F_delta'] = 1.3583e+03
-sim['f_i'] = 300
 sim['l_ef'] = 0.2755
 sim['turns_per_phase'] = 36 # W_1 in matlab code
 sim['slot_bottom_width'] = 0.0049
@@ -43,7 +45,6 @@ sim['air_gap_depth'] = 0.0013
 sim['K_theta'] = 1.0835
 sim['Tau_y'] = .1037
 sim['Kf'] = 1.2172
-sim['I_w'] = 123.1061
 sim['K_sigma_air'] = 1.2
 sim['lambda_n'] = 3.6789
 sim['lambda_leak_standard'] = 0.6131
@@ -56,13 +57,15 @@ sim['tooth_pitch'] = 0.0325
 sim['tooth_width'] = 0.0171
 sim['slot_height'] = 0.0239
 sim['height_yoke_stator'] = 0.0226
-# sim['Kaq'] = 0.2958
+sim['Kaq'] = 0.2958
 sim['L_j1'] = 0.058
 # sim['I_d_temp'] = 72.3581
 
 
 print(sim['phi_aq'])
+# rep.visualize_graph()
 sim.run()
+sim.visualize_implementation()
 # ONES NEEDED IN FUTURE COMPUTATIONS
 print('phi_aq: ', sim['phi_aq'])
 print('L_d: ', sim['L_d'])

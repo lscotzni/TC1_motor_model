@@ -53,14 +53,14 @@ class TC1MotorModel(Model):
         )
         # outputs: resistance, mass, motor_variables
         self.declare_variable('T_em_max')
+        self.declare_variable('Rdc') # DC resistance
+        self.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
 
         # ---- MOTOR ANALYSIS MODEL ----
         omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,))
         load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,))
 
-        # variables that will feed into the motor analysis model
-        self.declare_variable('Rdc') # DC resistance
-        self.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
+        
 
         self.add(
             TC1MotorAnalysisModel(
@@ -77,9 +77,11 @@ class TC1MotorModel(Model):
             'TC1_motor_analysis_model',
         )
 
-        self.declare_variable('efficiency', shape=(num_nodes,))
-        self.declare_variable('input_power', shape=(num_nodes,))
-        self.declare_variable('current_amplitude', shape=(num_nodes,))
+
+
+        # self.declare_variable('efficiency', shape=(num_nodes,))
+        # self.declare_variable('input_power', shape=(num_nodes,))
+        # self.declare_variable('current_amplitude', shape=(num_nodes,))
 
 
 # NOTE:
@@ -98,10 +100,17 @@ if __name__ == '__main__':
     p = 6
     m = 3
     Z = 36
-    op_voltage = 800
+    op_voltage = 500
     V_lim = 1300
     rated_current = 123
     num_nodes = 4 # dummy input
+
+    # D_i = 0.3723
+    # l_ef = 0.2755
+
+    D_i = 0.182
+    l_ef = 0.086
+
 
     m = TC1MotorModel(
         pole_pairs=p,
@@ -117,8 +126,11 @@ if __name__ == '__main__':
 
     rep = GraphRepresentation(m)
     sim = Simulator(rep)
-    sim['D_i'] = 0.3723
-    sim['L'] = 0.2755
+    sim['D_i'] = D_i
+    sim['L'] = l_ef
+    sim['omega_rotor'] = 1000/4
+    sim['load_torque_rotor'] = 2000*4
+    sim['T_em'] = 1500
     sim.run()
     # print('outer_stator_radius: ', sim['outer_stator_radius'])
     # print('pole_pitch: ', sim['pole_pitch'])
@@ -145,11 +157,54 @@ if __name__ == '__main__':
     # print('K_phi: ', sim['K_phi'])
     # print('K_theta: ', sim['K_theta'])
     # print('A_f2: ', sim['A_f2'])
-    # print('Rdc: ', sim['Rdc'])
+    print('Rdc: ', sim['Rdc'])
     # print('Rdc1: ', sim['Rdc1'])
     # print('Rac (incorrect): ', sim['Rac'])
-    # print('motor mass: ', sim['motor_mass'])
+    print('motor mass: ', sim['motor_mass'])
+    print('T_em_max: ', sim['T_em_max'])
+    print('Ld: ', sim['L_d'])
+    print('Lq: ', sim['L_q'])
+    print('phi_air: ', sim['phi_air'])
+    print('PsiF: ', sim['PsiF'])
+
+    print(' ---- OUTPUTS FROM TORQUE LIMIT MODEL ---- ')
+    print('torque: (found implicitly)', sim['T_lim'])
+    print(sim['max_cubic_root'])
+    print(sim['upper_quartic_bracket'])
+    print(sim['A_quartic'])
+    print(sim['B_quartic'])
+    print(sim['C_quartic'])
+    print(sim['D_quartic'])
+    print(sim['E_quartic'])
+    print('------')
+    # print(sim['test_out'])
+    print(sim['cubic_roots'])
+
+    print(' ---- OUTPUTS FROM FLUX WEAKENING ---- ')
+    print('Iq bracket coeff a: ', sim['a_bracket'])
+    print('Iq bracket coeff c: ', sim['c_bracket'])
+    print('Iq bracket coeff d: ', sim['d_bracket'])
+    print('Iq bracket coeff e: ', sim['e_bracket'])
+    print('Iq FW bracket: ', sim['I_q_fw_bracket'])
+    print('Id lower bracket: ', sim['Id_fw_bracket'])
+    print('Id upper bracket: ', sim['I_d_asymp'])
+    print('Flux Weakening Iq: ', sim['Iq_fw'])
+    print('Flux Weakening Id: ', sim['Id_fw'])
+
+    print(' ---- OUTPUTS FROM MTPA ---- ')
+    print('MTPA non-dim Iq: ', sim['Iq_MTPA_star'])
+    print('MTPA Iq: ', sim['Iq_MTPA'])
+
+    print(' ---- OUTPUTS FROM POST PROCESSING ---- ')
+    print('Current Amplitude: ', sim['current_amplitude'])
+    print('Voltage Amplitude: ', sim['voltage_amplitude'])
+    print('Output Power: ', sim['output_power'])
+    print('Input Power: ', sim['input_power'])
+    print('Efficiency: ', sim['efficiency'])
+    
+
+
     # print('----------')
     # print(sim['motor_variables'])
-    print('input power:', sim['input_power'])
-    sim.visualize_implementation()
+    # print('input power:', sim['input_power'])
+    # sim.visualize_implementation()

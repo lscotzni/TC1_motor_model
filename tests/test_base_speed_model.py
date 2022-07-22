@@ -1,5 +1,6 @@
+import graphlib
 import numpy as np
-from csdl import Model, NewtonSolver, ScipyKrylov
+from csdl import Model, NewtonSolver, ScipyKrylov, GraphRepresentation
 from csdl_om import Simulator
 
 class BaseSpeedImplicitModelTest(Model):
@@ -23,7 +24,7 @@ class BaseSpeedImplicitModelTest(Model):
         T_max = self.declare_variable('T_max')
         phi = self.declare_variable('phi_air')
 
-        base_speed = self.declare_variable('base_speed', val=1000) # STATE
+        base_speed = self.declare_variable('base_speed', val=100000) # STATE
 
         D = (3*p*(Ld-Lq))**2
 
@@ -38,11 +39,18 @@ class BaseSpeedImplicitModelTest(Model):
         asdf[3] = d = -12*p*phi*(base_speed**2*Ld*Lq + R**2)*T_max
         asdf[4] = e = 4*(R**2+base_speed**2*Ld**2)*T_max**2
 
-        self.create_quartic_discriminant(a, b, c, d, e)
+        # self.create_quartic_discriminant(a, b, c, d, e)
+
+        # base_speed_residual = self.register_output(
+        #     'base_speed_residual',
+        #     self.quartic_discriminant/1e16
+        # )
+
+        self.create_quartic_discriminant(a/c, 0, 1, d/c, e/c)
 
         base_speed_residual = self.register_output(
             'base_speed_residual',
-            self.quartic_discriminant/1e20
+            self.quartic_discriminant
         )
 
 class BaseSpeedModelTest(Model):
@@ -53,11 +61,11 @@ class BaseSpeedModelTest(Model):
     def define(self):
         p = self.parameters['pole_pairs']
         V_lim = self.parameters['V_lim']
-        # R = self.declare_variable('Rdc')
-        # Ld = self.declare_variable('L_d')
-        # Lq = self.declare_variable('L_q')
-        # T_max = self.declare_variable('T_max')
-        # phi = self.declare_variable('phi_air')
+        R = self.declare_variable('Rdc')
+        Ld = self.declare_variable('L_d')
+        Lq = self.declare_variable('L_q')
+        T_max = self.declare_variable('T_max')
+        phi = self.declare_variable('phi_air')
 
         base_speed_implicit_model = BaseSpeedImplicitModelTest(
             pole_pairs=p,
@@ -68,7 +76,7 @@ class BaseSpeedModelTest(Model):
         base_speed_implicit_op.declare_state(
             'base_speed',
             residual='base_speed_residual',
-            bracket=(1850,1900)
+            # bracket=(800,10000)
         )
         base_speed_implicit_op.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
@@ -91,13 +99,14 @@ class BaseSpeedModelTest(Model):
 
 if __name__ == '__main__':
     p = 6
-    V_lim = 2000
+    V_lim = 1000
     m = BaseSpeedModelTest(
         pole_pairs=p,
         V_lim=V_lim
     )
+    rep = GraphRepresentation(m)
 
-    sim = Simulator(m)
+    sim = Simulator(rep)
     # sim['Rdc'] = 0.091
     # sim['L_d'] = 0.0043
     # sim['L_q'] = 0.0126
@@ -107,7 +116,7 @@ if __name__ == '__main__':
     sim['Rdc'] = 0.0313
     sim['L_d'] = 0.0011
     sim['L_q'] = 0.0022
-    sim['T_max'] = 2200
+    sim['T_max'] = 1730
     sim['phi_air'] = 0.0153
 
     sim.run()

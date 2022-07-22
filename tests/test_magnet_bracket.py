@@ -2,11 +2,11 @@ import numpy as np
 import csdl
 from csdl_om import Simulator
 
-from TC1_motor_model.analysis_models.TC1_magnet_mec_model import MagnetMECModel
+from TC1_motor_model.motor_submodels.TC1_magnet_mec_model import MagnetMECModel
 from TC1_motor_model.permeability.mu_fitting import permeability_fitting
 
 # SETUP PERMEABILITY FITTING
-file_name = 'TC1_motor_model/permeability/Magnetic_alloy_silicon_core_iron_C.tab'
+file_name = 'Magnetic_alloy_silicon_core_iron_C.tab'
 order=10
 
 mu_fitting = permeability_fitting(
@@ -23,8 +23,9 @@ m = MagnetMECModel(
     fit_coeff_dep_H=fit_coeff_dep_H,
     fit_coeff_dep_B=fit_coeff_dep_B,
 )
+rep = csdl.GraphRepresentation(m)
 
-sim = Simulator(m)
+sim = Simulator(rep)
 # MANUALLY UPDATE VARIABLES BASED ON ZEYU'S MATLAB CODE
 sim['tooth_pitch'] = 0.0325
 sim['tooth_width'] = 0.0171
@@ -42,7 +43,7 @@ sim['phi_r'] = 0.0232
 sim['lambda_m'] = 3.4210e-06
 
 print(sim['B_delta'])
-sim.run()
+sim.visualize_implementation()
 # ONES NEEDED IN FUTURE COMPUTATIONS
 print('B_delta: ', sim['B_delta'])
 print('phi_air: ', sim['phi_air'])

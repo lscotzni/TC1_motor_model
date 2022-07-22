@@ -37,44 +37,27 @@ add AllowableOperatingconditions as needed
 
 =========================================================================================
 # TO-DO:
-add the analytical brackets 
-  - inductance MEC model *(DONE, NEEDS CHECKING)*
-  - flux weakening *(DONE, BUT METHOD MAY CHANGE SO REVISIT)*
-add the models into the proper places based on notes from meeting with Darshan *DONE*
-  - need to look at video to get a reference for how to set up models in CADDEE
-talk with Victor about the implicit operation
-  - the bracketing isn't working (even without the variables as brackets); results fall outside of region
-  - variables within brackets don't work either
-  - also mention to Victor the problem with the negative signs in front of the CSDL variables
+models to work on:
+  - flux weakening (do analytical method)
 
-verify the other implicit models
-  - still need to do MTPA and flux weakening
-VERIFY UNITS ON MASS CALCULATIONS (SEEM UNREALISTIC COMPARED TO DATA SHEETS) *DONE*
-  - Zeyu said they are correct and are in kg; look at new MATLAB code
-make sure that all analysis models have the proper info feeding to them via variables (like f_i)
+do a full verification of the motor models
+  - sizing: *DONE*
+  - analysis:
+    - magnet MEC: *DONE*
+    - inductance MEC: *DONE*
+    - flux weakening: need to verify result
+    - MTPA: need to verify result
+    - post-processing: need to verify
 
 fix permeability fitting for B = f(H) *DONE* and write as a class
-make sure all connections and variables in the analysis models make sense
 
-DO ON TUESDAY 
-fix sizing for new methodology *NEED TO REVIEW REST OF CODE*
-  - now adjust the rest of the analysis model to reflect the changes (like not having I_w, etc.)
-  - 2 outputs from motor sizing: 
-    - vector with all the internal parameters called in analysis
-    - motor mass
-Add the torque vs mass fitting model
-  - need to wait for Zeyu to gather further data
-  - we will put the torque vs mass fitting into sizing
-  - dynamic torque limit will be part of the analysis model
+mass-torque fitting: get coefficients and plug into CSDL model
 
-## TO DO ASAP
-  - TEST AND ADJUST THE ANALYSIS MODEL TO MAKE SURE INFORMATION IS BEING PROPAGATED PROPERLY
-  - CHECK OUTPUTS FROM SIZING GOING INTO ANALYSIS
-  - MESSAGE VICTOR ABOUT 2 THINGS
-    - HOW TO DEAL WITH MORE COMPLEX IMPLICIT METHODS
-      - DECLARING VARIABLE REMOVES IT AS AN OUTPUT VARIABLE SO IT CAN'T BE EXPOSED IN THE IMPLICIT METHOD
+FIX phi_m CALCULATION ACCORDING TO MATLAB CODE
 
-- add max torque model to sizing
-  - need to revisit fitting, but set up the model in sizing just so that coefficeints are the last thing needed
-  - push this update to the github and let Darshan know
-- fix variables in implicit model for T_em
+POWERTRAIN MODEL:
+- ask about the input phase current and how it's different from Id and Iq in the motor model
+- calculate the voltage components using the MATLAB code as reference
+- how much freedom is given to the user?
+  - branches for battery & DC/DC converter before the bus
+  - is there going to be an option with multiple motors on the rotors?

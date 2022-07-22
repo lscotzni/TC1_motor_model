@@ -141,13 +141,13 @@ class MagnetMECModel(Model):
         Br  = 1.2
         lower_bound = eps
         upper_bound = Br
-        # lower_bound = self.declare_variable('zero', 0.0)
-        # upper_bound = self.declare_variable('Br', Br)
+        # lower_bound = self.declare_variable('magnet_mec_lb', 0.0)
+        # upper_bound = self.declare_variable('magnet_mec_ub', Br)
         # lower_bound = self.register_output('lower_bound', lower_bound * 1.0)
         # upper_bound = self.register_output('upper_bound', upper_bound * 1.0)
         solve_MEC = self.create_implicit_operation(MECmodel)
-        # solve_MEC.declare_state('B_delta', residual='residual', bracket=(lower_bound, upper_bound))
-        solve_MEC.declare_state('B_delta', residual='residual')
+        solve_MEC.declare_state('B_delta', residual='residual', bracket=(lower_bound, upper_bound))
+        # solve_MEC.declare_state('B_delta', residual='residual')
         
         solve_MEC.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
