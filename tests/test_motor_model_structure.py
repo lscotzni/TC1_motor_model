@@ -1,7 +1,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 from csdl_om import Simulator
-from csdl import Model, GraphRepresentation
+from csdl import Model
 import csdl
 from traitlets import default
 
@@ -138,8 +138,8 @@ if __name__ == '__main__':
         
     )
 
-    rep = GraphRepresentation(m)
-    sim = Simulator(rep)
+    # rep = GraphRepresentation(m)
+    sim = Simulator(m)
     sim['D_i'] = D_i
     sim['L'] = l_ef
     sim['omega_rotor'] = 2000/4

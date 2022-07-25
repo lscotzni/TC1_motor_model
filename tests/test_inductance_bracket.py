@@ -28,9 +28,9 @@ m = InductanceModel(
     fit_coeff_dep_B=fit_coeff_dep_B,
 )
 
-rep = csdl.GraphRepresentation(m)
+# rep = csdl.GraphRepresentation(m)
 
-sim = Simulator(rep)
+sim = Simulator(m)
 # EXISTS IN THE INDUCTANCE MODEL
 sim['phi_air'] = 0.01512911
 sim['F_total'] = 1.4415e+03
