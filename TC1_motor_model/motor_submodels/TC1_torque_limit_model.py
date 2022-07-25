@@ -1,5 +1,5 @@
 import numpy as np
-from csdl import Model, NewtonSolver, ScipyKrylov, GraphRepresentation
+from csdl import Model, NewtonSolver, ScipyKrylov
 import csdl
 from csdl_om import Simulator
 
@@ -186,9 +186,9 @@ if __name__ == '__main__':
         num_nodes=1
     )
 
-    rep = GraphRepresentation(m)
+    # rep = GraphRepresentation(m)
 
-    sim = Simulator(rep)
+    sim = Simulator(m)
 
     sim['Rdc'] = Rdc
     sim['L_d'] = L_d

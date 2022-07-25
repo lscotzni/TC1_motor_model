@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from csdl import Model, ScipyKrylov, NewtonSolver, GraphRepresentation
+from csdl import Model, ScipyKrylov, NewtonSolver
 import csdl
 from csdl_om import Simulator
 
@@ -91,8 +91,8 @@ if __name__ == '__main__':
         num_nodes=num_nodes, pole_pairs=p
     )
 
-    rep = GraphRepresentation(m)
-    sim = Simulator(rep)
+    # rep = GraphRepresentation(m)
+    sim = Simulator(m)
 
     sim['T_em'] = 5000
     sim['L_d_expanded'] = 0.0011
