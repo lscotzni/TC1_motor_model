@@ -90,149 +90,81 @@ class FluxWeakeningModel(Model):
         PsiF_expanded = self.declare_variable('PsiF_expanded', shape=(num_nodes,))
 
         D = (3*p*(L_d_expanded-L_q_expanded))
+        if False:
+            # FLUX WEAKENING BRACKETING IMPLICIT MODEL (TO FIND BRACKET LIMIT)
+            a_bracket = self.register_output(
+                'a_bracket',
+                D**2 * ((omega*L_q_expanded)**2 + R_expanded**2)
+            )
+            c_bracket = self.register_output(
+                'c_bracket',
+                (3*p*PsiF_expanded)**2 * (R_expanded**2 + (omega*L_q_expanded)**2) + \
+                12*p*omega*R_expanded*T_lim*(L_d_expanded-L_q_expanded)**2 - (V_lim*D)**2
+            )
+            d_bracket = self.register_output(
+                'd_bracket',
+                -12*p*PsiF_expanded*T_lim*(R_expanded**2 + omega**2*L_d_expanded*L_q_expanded)
+            )
+            e_bracket = self.register_output(
+                'e_bracket',
+                4*T_lim**2*(R_expanded**2 + (omega*L_d_expanded)**2)
+            )
 
-        # FLUX WEAKENING BRACKETING IMPLICIT MODEL (TO FIND BRACKET LIMIT)
-        a_bracket = self.register_output(
-            'a_bracket',
-            D**2 * ((omega*L_q_expanded)**2 + R_expanded**2)
-        )
-        c_bracket = self.register_output(
-            'c_bracket',
-            (3*p*PsiF_expanded)**2 * (R_expanded**2 + (omega*L_q_expanded)**2) + \
-            12*p*omega*R_expanded*T_lim*(L_d_expanded-L_q_expanded)**2 - (V_lim*D)**2
-        )
-        d_bracket = self.register_output(
-            'd_bracket',
-            -12*p*PsiF_expanded*T_lim*(R_expanded**2 + omega**2*L_d_expanded*L_q_expanded)
-        )
-        e_bracket = self.register_output(
-            'e_bracket',
-            4*T_lim**2*(R_expanded**2 + (omega*L_d_expanded)**2)
-        )
-
-        
-        self.add(
-            FluxWeakeningBracketModel(pole_pairs=p, num_nodes=num_nodes),
-            'flux_weakening_bracket_method'
-        )
+            
+            self.add(
+                FluxWeakeningBracketModel(pole_pairs=p, num_nodes=num_nodes),
+                'flux_weakening_bracket_method'
+            )
         Id_fw_bracket_low = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
         # THE LOWER END OF THE BRACKET (MOST NEGATIVE, WHERE DISCRIMINANT = 0)
-        if True:
-            # FLUX WEAKENING IMPLICIT MODEL
+        
+        # FLUX WEAKENING IMPLICIT MODEL
+        a1 = self.register_output(
+            'a1',
+            D**2 * (R_expanded**2 + (omega*L_d_expanded)**2),
+        )
 
-            a1 = self.register_output(
-                'a1',
-                D**2 * (R_expanded**2 + (omega*L_d_expanded)**2),
+        a2 = self.register_output(
+            'a2',
+            18*p**2*PsiF_expanded*(L_d_expanded-L_q_expanded) * \
+                (R_expanded**2 + omega**2*L_d_expanded*(2*L_d_expanded-L_q_expanded))
+        )
+
+        a3 = self.register_output(
+            'a3',
+            (3*p*PsiF_expanded)**2*(R_expanded**2 + (omega*(2*L_d_expanded-L_q_expanded))**2) - \
+            (3*p*V_lim*(L_d_expanded-L_q_expanded))**2 + 6*p*omega*(L_d_expanded-L_q_expanded) * \
+                (3*PsiF_expanded**2*p*omega*L_d_expanded + 2*R_expanded*T_em*(L_d_expanded-L_q_expanded))
+        )
+
+        a4 = self.register_output(
+            'a4',
+            6*p*omega*PsiF_expanded*(3*PsiF_expanded**2*p*omega*(2*L_d_expanded-L_q_expanded) + 4*R_expanded*T_em*(L_d_expanded-L_q_expanded)) - \
+                18*(p*V_lim)**2*PsiF_expanded*(L_d_expanded-L_q_expanded)
+        )
+
+        a5 = self.register_output(
+            'a5',
+            (2*T_em*L_q_expanded*omega)**2 + (3*PsiF_expanded**2*p*omega)**2 + (2*R_expanded*T_em)**2 + \
+                12*PsiF_expanded**2*p*omega*R_expanded*T_em - (3*p*V_lim*PsiF_expanded)**2
+        )
+        '''
+        BRACKET FOR IMPLICIT FLUX WEAKENING MODEL
+        '''
+        I_d_asymp = self.register_output(
+            'I_d_asymp',
+            -PsiF_expanded/(L_d_expanded - L_q_expanded)
+        ) # UPPER LIMIT OF I_d WHERE I_q ASYMPTOTES TO INFINITY
+
+        
+        ''' --- START IMPLICIT MODEL FOR FLUX WEAKENING --- '''
+        self.add(
+            FluxWeakeningImplicitModel(
+                pole_pairs=p,
+                V_lim=V_lim,
+                num_nodes=num_nodes
             )
-
-            a2 = self.register_output(
-                'a2',
-                18*p**2*PsiF_expanded*(L_d_expanded-L_q_expanded) * \
-                    (R_expanded**2 + omega**2*L_d_expanded*(2*L_d_expanded-L_q_expanded))
-            )
-
-            a3 = self.register_output(
-                'a3',
-                (3*p*PsiF_expanded)**2*(R_expanded**2 + (omega*(2*L_d_expanded-L_q_expanded))**2) - \
-                (3*p*V_lim*(L_d_expanded-L_q_expanded))**2 + 6*p*omega*(L_d_expanded-L_q_expanded) * \
-                    (3*PsiF_expanded**2*p*omega*L_d_expanded + 2*R_expanded*T_em*(L_d_expanded-L_q_expanded))
-            )
-
-            a4 = self.register_output(
-                'a4',
-                6*p*omega*PsiF_expanded*(3*PsiF_expanded**2*p*omega*(2*L_d_expanded-L_q_expanded) + 4*R_expanded*T_em*(L_d_expanded-L_q_expanded)) - \
-                    18*(p*V_lim)**2*PsiF_expanded*(L_d_expanded-L_q_expanded)
-            )
-
-            a5 = self.register_output(
-                'a5',
-                (2*T_em*L_q_expanded*omega)**2 + (3*PsiF_expanded**2*p*omega)**2 + (2*R_expanded*T_em)**2 + \
-                    12*PsiF_expanded**2*p*omega*R_expanded*T_em - (3*p*V_lim*PsiF_expanded)**2
-            )
-            '''
-            BRACKET FOR IMPLICIT FLUX WEAKENING MODEL
-            '''
-            I_d_asymp = self.register_output(
-                'I_d_asymp',
-                -PsiF_expanded/(L_d_expanded - L_q_expanded)
-            ) # UPPER LIMIT OF I_d WHERE I_q ASYMPTOTES TO INFINITY
-
-            # I_d_asymp =  self.declare_variable('I_d_asymp', shape=(num_nodes,))
-
-            # # EVALUATE COEFFICIENTS FOR I_q FLUX WEAKENING METHOD FOR THE I_d BRACKETING
-            # a1_Iq = D**2*(R_expanded**2 + (omega*L_q_expanded)**2)
-            # a3_Iq = (3*p*PsiF_expanded)**2*(R_expanded**2 + (omega*L_q_expanded)**2) + \
-            #     12*p*omega*R_expanded*T_em*(L_d_expanded-L_q_expanded)**2 - (V_lim*D)**2
-            # a4_Iq = -12*p*PsiF_expanded*T_em*(R_expanded**2 + omega**2*L_d_expanded*L_q_expanded)
-            # '''
-            # PROBLEMS:
-            #     - this method relies on minimizing the difference between torque and voltage curve, but it
-            #         also ASSUMES that all torques will be under the limit, which becomes problematic for the
-            #         residual; for instance, the bracket can get too wide for a too large torque
-            #         - this can be resolved by using the depressed quartic solution
-            # '''
-
-            # p = a3_Iq / (2*a1_Iq)
-            # q = a4_Iq / (4*a1_Iq)
-            # p_q = self.create_output('p_q', shape=(2,))
-            # p_q[0] = p; p_q[1] = q
-            # self.register_output('cond', 4*p**3 + 27*q**2)
-            # I_q_hat = (-q/2 + (q**2/4+p**3/27)**(1/2))**(1/3) + (-q/2 - (q**2/4+p**3/27)**(1/2))**(1/3)
-            # self.register_output('I_q_hat', I_q_hat)
-            # I_d_hat = self.register_output(
-            #     'I_d_hat',
-            #     (2*T_em/(3*p*I_q_hat) - PsiF_expanded)/(L_d_expanded-L_q_expanded)
-            # )
-
-            ''' --- START IMPLICIT MODEL FOR FLUX WEAKENING --- '''
-            self.add(
-                FluxWeakeningImplicitModel(
-                    pole_pairs=p,
-                    V_lim=V_lim,
-                    num_nodes=num_nodes
-                )
-            )
-            # model=Model()
-
-            # Id_fw = model.declare_variable('Id_fw', shape=(num_nodes,)) # STATE
-
-            # a1 = model.declare_variable('a1', shape=(num_nodes,))
-            # a2 = model.declare_variable('a2', shape=(num_nodes,))
-            # a3 = model.declare_variable('a3', shape=(num_nodes,))
-            # a4 = model.declare_variable('a4', shape=(num_nodes,))
-            # a5 = model.declare_variable('a5', shape=(num_nodes,))
-
-            # residual = model.register_output(
-            #     'Id_fw_residual',
-            #     a1*Id_fw**4 + a2*Id_fw**3 + a3*Id_fw**2 + a4*Id_fw + a5
-            # )
-            # ''' --- END IMPLICIT MODEL FOR FLUX WEAKENING --- '''
-
-            # solve_flux_weakening = self.create_implicit_operation(model)
-            # solve_flux_weakening.declare_state('Id_fw', 
-            #     residual='Id_fw_residual', 
-            #     # bracket=(Id_fw_bracket_low, I_d_asymp),
-            #     bracket=(-587.9010, 13.90909091)
-            # )
-            # solve_flux_weakening.nonlinear_solver = NewtonSolver(
-            #     solve_subsystems=False,
-            #     maxiter=100,
-            #     iprint=False,
-            # )
-            # solve_flux_weakening.linear_solver = ScipyKrylov()
-
-            # a1 = self.declare_variable('a1', shape=(num_nodes,))
-            # a2 = self.declare_variable('a2', shape=(num_nodes,))
-            # a3 = self.declare_variable('a3', shape=(num_nodes,))
-            # a4 = self.declare_variable('a4', shape=(num_nodes,))
-            # a5 = self.declare_variable('a5', shape=(num_nodes,))
-
-            # Id_fw = solve_flux_weakening(a1, a2, a3, a4, a5)
-
-            # Iq_fw = self.register_output(
-            #     'Iq_fw',
-            #     T_em/(1.5*p)/(PsiF_expanded+(L_d_expanded-L_q_expanded)*Id_fw)
-            # )
+        )
 
 class FluxWeakeningImplicitModel(Model):
     def initialize(self):
@@ -314,8 +246,8 @@ if __name__ == '__main__':
         num_nodes=1,
     )
 
-    rep = csdl.GraphRepresentation(m)
-    sim = Simulator(rep)
+    # rep = csdl.GraphRepresentation(m)
+    sim = Simulator(m)
 
     sim['Rdc'] = 0.0313
     sim['L_d'] = 0.0011

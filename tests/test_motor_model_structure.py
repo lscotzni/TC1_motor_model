@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from csdl_om import Simulator
 from csdl import Model, GraphRepresentation
 import csdl
+from traitlets import default
 
 from TC1_motor_model.TC1_motor_sizing_model import TC1MotorSizingModel
 from TC1_motor_model.TC1_motor_analysis_model import TC1MotorAnalysisModel
@@ -25,6 +26,7 @@ class TC1MotorModel(Model):
         self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
         self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
         self.parameters.declare('num_nodes')
+        self.parameters.declare('model_test', default=False)
 
     def define(self):
 
@@ -37,6 +39,7 @@ class TC1MotorModel(Model):
         fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
         num_nodes = self.parameters['num_nodes']
+        model_test = self.parameters['model_test']
 
         D_i = self.declare_variable('D_i') # inner radius of stator
         L = self.declare_variable('L') # effective length of motor
@@ -60,8 +63,7 @@ class TC1MotorModel(Model):
         omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,))
         load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,))
 
-        
-
+    
         self.add(
             TC1MotorAnalysisModel(
                 pole_pairs=p,
@@ -73,6 +75,7 @@ class TC1MotorModel(Model):
                 fit_coeff_dep_H=fit_coeff_dep_H,
                 fit_coeff_dep_B=fit_coeff_dep_B,
                 num_nodes=num_nodes,
+                model_test=model_test
             ),
             'TC1_motor_analysis_model',
         )
@@ -111,6 +114,15 @@ if __name__ == '__main__':
     D_i = 0.182
     l_ef = 0.086
 
+    load_torque_rotor = 600
+    # em_torque_test_range = np.arange(20,100+1, 1) * 4
+    em_torque_test_range = np.arange(20,100+1, 20) * 4
+    model_test=False
+    if model_test:
+        num_nodes=len(em_torque_test_range)
+    else:
+        num_nodes=2
+
 
     m = TC1MotorModel(
         pole_pairs=p,
@@ -122,16 +134,20 @@ if __name__ == '__main__':
         fit_coeff_dep_H=fit_coeff_dep_H,
         fit_coeff_dep_B=fit_coeff_dep_B,
         num_nodes=num_nodes,
+        model_test=model_test,
+        
     )
 
     rep = GraphRepresentation(m)
     sim = Simulator(rep)
     sim['D_i'] = D_i
     sim['L'] = l_ef
-    sim['omega_rotor'] = 1000/4
-    sim['load_torque_rotor'] = 2000*4
-    sim['T_em'] = 1500
-    sim.run()
+    sim['omega_rotor'] = 2000/4
+    sim['load_torque_rotor'] = load_torque_rotor
+    if model_test:
+        sim['T_em'] = em_torque_test_range
+    # sim.run()
+    sim.visualize_implementation()
     # print('outer_stator_radius: ', sim['outer_stator_radius'])
     # print('pole_pitch: ', sim['pole_pitch'])
     # print('tooth_pitch: ', sim['tooth_pitch'])
@@ -168,7 +184,7 @@ if __name__ == '__main__':
     print('PsiF: ', sim['PsiF'])
 
     print(' ---- OUTPUTS FROM TORQUE LIMIT MODEL ---- ')
-    print('torque: (found implicitly)', sim['T_lim'])
+    print('limit torque: (found implicitly)', sim['T_lim'])
     print(sim['max_cubic_root'])
     print(sim['upper_quartic_bracket'])
     print(sim['A_quartic'])
@@ -180,27 +196,40 @@ if __name__ == '__main__':
     # print(sim['test_out'])
     print(sim['cubic_roots'])
 
-    print(' ---- OUTPUTS FROM FLUX WEAKENING ---- ')
-    print('Iq bracket coeff a: ', sim['a_bracket'])
-    print('Iq bracket coeff c: ', sim['c_bracket'])
-    print('Iq bracket coeff d: ', sim['d_bracket'])
-    print('Iq bracket coeff e: ', sim['e_bracket'])
-    print('Iq FW bracket: ', sim['I_q_fw_bracket'])
-    print('Id lower bracket: ', sim['Id_fw_bracket'])
-    print('Id upper bracket: ', sim['I_d_asymp'])
-    print('Flux Weakening Iq: ', sim['Iq_fw'])
-    print('Flux Weakening Id: ', sim['Id_fw'])
+    if model_test:
+        print(' ---- OUTPUTS FROM FLUX WEAKENING ---- ')
+        print('Iq bracket coeff a: ', sim['a_bracket'])
+        print('Iq bracket coeff c: ', sim['c_bracket'])
+        print('Iq bracket coeff d: ', sim['d_bracket'])
+        print('Iq bracket coeff e: ', sim['e_bracket'])
+        print('Iq FW bracket: ', sim['I_q_fw_bracket'])
+        print('Id lower bracket: ', sim['Id_fw_bracket'])
+        print('Id upper bracket: ', sim['I_d_asymp'])
+        print('Flux Weakening Iq: ', sim['Iq_fw'])
+        print('Flux Weakening Id: ', sim['Id_fw'])
 
-    print(' ---- OUTPUTS FROM MTPA ---- ')
-    print('MTPA non-dim Iq: ', sim['Iq_MTPA_star'])
-    print('MTPA Iq: ', sim['Iq_MTPA'])
+        print(' ---- OUTPUTS FROM MTPA ---- ')
+        print('MTPA non-dim Iq: ', sim['Iq_MTPA_star'])
+        print('MTPA Iq: ', sim['Iq_MTPA'])
+
+        em_torque = em_torque_test_range
+    else:
+        em_torque = sim['T_em']
 
     print(' ---- OUTPUTS FROM POST PROCESSING ---- ')
     print('Current Amplitude: ', sim['current_amplitude'])
-    print('Voltage Amplitude: ', sim['voltage_amplitude'])
+    # print('Voltage Amplitude: ', sim['voltage_amplitude'])
+    output_power = sim['output_power']
+    input_power = sim['input_power']
+    efficiency = sim['efficiency']
+    load_torque = sim['load_torque']
+    residual = em_torque*efficiency - load_torque
     print('Output Power: ', sim['output_power'])
     print('Input Power: ', sim['input_power'])
     print('Efficiency: ', sim['efficiency'])
+    print('residual: ', residual)
+    if not model_test:
+        print('resultant EM Torque: ', sim['T_em'])
     
 
 
