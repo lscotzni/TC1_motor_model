@@ -1,7 +1,8 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 from csdl_om import Simulator
-from csdl import Model
+# from python_csdl_backend import Simulator
+from csdl import Model, GraphRepresentation
 import csdl
 
 class TorqueMassModel(Model):
@@ -74,7 +75,7 @@ class TC1MotorSizingModel(Model):
         p = self.parameters['pole_pairs']
         Z = self.parameters['num_slots']
         I_w = self.parameters['rated_current']
-        a = 1 # PARALLEL BRANCHES
+        a = 1. # PARALLEL BRANCHES
         q = Z/(2*m*p) # SLOTS PER POLE PER PHASE
         mu_0 = np.pi*4e-7
 
@@ -82,7 +83,7 @@ class TC1MotorSizingModel(Model):
         D_i = self.declare_variable('D_i') # inner radius of stator
         L = self.declare_variable('L') # effective length of motor
         rated_omega = 3000
-        eta_0 = 0.88 # ASSUMED INITIAL EFFICIENCY; MATLAB CODE STARTS WITH 0.88
+        eta_0 = 0.96 # ASSUMED INITIAL EFFICIENCY; MATLAB CODE STARTS WITH 0.88
         PF = 1 # POWER FACTOR
 
         f_i = rated_omega*p/60
@@ -91,7 +92,7 @@ class TC1MotorSizingModel(Model):
         kwm = 1.11 # COEFFICIENT OF B-AIR GAP CURVE (NOT USED)
         kdp1 = 0.925 # COEFFICIENT OF STATOR WINDING FUNDAMENTAL COMPONENT (NOT USED)
 
-        line_load = 26000 # CURRENT PER UNIT LENGTH; THIS MAY NEED TO BE UPDATED
+        line_load = 30000 # CURRENT PER UNIT LENGTH; THIS MAY NEED TO BE UPDATED
         # NOTE: THIS IS THE ELECTRIC LOADING THAT ZEYU FOUND FROM A LOOKUP TABLE IN A CHINESE TEXTBOOK;
 
         lambda_i = 1.25
@@ -128,8 +129,10 @@ class TC1MotorSizingModel(Model):
         # these lines of code will cause errors compared to MATLAB code bc Zeyu
         # uses floor to round, and we cannot do that
 
-        J = 5 # target current density
-        Acu = I_w/(a*J*conductors_per_slot) * 1e-6
+        N_p = self.declare_variable('N_p', 2.)
+
+        J = 5. # target current density
+        Acu = I_w/(a*J*N_p) * 10.**(-6.)
         # Acu = self.register_output('Acu',Acu)
         d_coil = 2 * (Acu/np.pi)**0.5
 
@@ -201,7 +204,7 @@ class TC1MotorSizingModel(Model):
         rho_magnet = 7.6 # MAGNET DENSITY (g/cm^3)
         mass_magnet = 2*p*bm*hm*l_ef*rho_magnet*1e3 # MAGNET MASS
 
-        phi_r = Br*Am_r
+        phi_r = 1.2*Am_r
         # phi_r = self.register_output('phi_r',phi_r)
         Fc = 2*Hc*hm
 
@@ -232,7 +235,7 @@ class TC1MotorSizingModel(Model):
         Rdc = self.register_output(
             'Rdc',
             2 * rho * turns_per_phase * l_coil / \
-            (a * Acu * conductors_per_slot) # DC RESISTANCE
+            (a * Acu * N_p) # DC RESISTANCE
         )
 
         if False:
@@ -307,3 +310,32 @@ class TC1MotorSizingModel(Model):
             TorqueMassModel(fitting_order=1),
             'max_torque_model'
         ) # GIVES US T_em_max AS A FUNCTION OF MASS
+
+if __name__ == '__main__':
+    m = TC1MotorSizingModel(
+        pole_pairs = 6,
+        phases=3,
+        num_slots=36,
+        rated_current=123
+    )
+
+    # D_i = 0.182
+    # L = 0.086
+
+    D_i = 0.3723
+    L = 0.2755
+
+    rep = GraphRepresentation(m)
+    sim = Simulator(rep)
+    sim['D_i'] = D_i
+    sim['L'] = L
+
+    sim.run()
+    print(sim['Rdc'])
+    print(sim['motor_variables'])
+    print([
+            'outer_stator_radius', 'pole_pitch', 'tooth_pitch', 'air_gap_depth', 'l_ef',
+            'rotor_radius', 'turns_per_phase', 'Acu',  'tooth_width', 'height_yoke_stator',
+            'slot_bottom_width', 'slot_height', 'slot_width_inner', 'Tau_y', 'L_j1', 'Kdp1',
+            'bm', 'Am_r', 'phi_r', 'lambda_m', 'alpha_i', 'Kf', 'K_phi', 'K_theta', 'A_f2',
+        ])

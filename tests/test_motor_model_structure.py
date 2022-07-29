@@ -1,7 +1,8 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 from csdl_om import Simulator
-from csdl import Model
+from python_csdl_backend import Simulator
+from csdl import Model, GraphRepresentation
 import csdl
 from traitlets import default
 
@@ -104,17 +105,18 @@ if __name__ == '__main__':
     m = 3
     Z = 36
     op_voltage = 500
-    V_lim = 1300
+    V_lim = 800
     rated_current = 123
     num_nodes = 4 # dummy input
 
     # D_i = 0.3723
-    # l_ef = 0.2755
+    # L = 0.2755
 
     D_i = 0.182
-    l_ef = 0.086
+    L = 0.086
 
-    load_torque_rotor = 600
+    # load_torque_rotor = 600
+    load_torque_rotor = 136.17287413
     # em_torque_test_range = np.arange(20,100+1, 1) * 4
     em_torque_test_range = np.arange(20,100+1, 20) * 4
     model_test=False
@@ -138,16 +140,16 @@ if __name__ == '__main__':
         
     )
 
-    # rep = GraphRepresentation(m)
-    sim = Simulator(m)
+    rep = GraphRepresentation(m)
+    sim = Simulator(rep)
     sim['D_i'] = D_i
-    sim['L'] = l_ef
-    sim['omega_rotor'] = 2000/4
+    sim['L'] = L
+    sim['omega_rotor'] = 2200
     sim['load_torque_rotor'] = load_torque_rotor
     if model_test:
         sim['T_em'] = em_torque_test_range
-    # sim.run()
-    sim.visualize_implementation()
+    sim.run()
+    # sim.visualize_implementation()
     # print('outer_stator_radius: ', sim['outer_stator_radius'])
     # print('pole_pitch: ', sim['pole_pitch'])
     # print('tooth_pitch: ', sim['tooth_pitch'])
@@ -185,16 +187,13 @@ if __name__ == '__main__':
 
     print(' ---- OUTPUTS FROM TORQUE LIMIT MODEL ---- ')
     print('limit torque: (found implicitly)', sim['T_lim'])
-    print(sim['max_cubic_root'])
-    print(sim['upper_quartic_bracket'])
+    print(sim['Iq_fw_bracket'])
+    print(sim['Id_fw_bracket'])
     print(sim['A_quartic'])
     print(sim['B_quartic'])
     print(sim['C_quartic'])
     print(sim['D_quartic'])
     print(sim['E_quartic'])
-    print('------')
-    # print(sim['test_out'])
-    print(sim['cubic_roots'])
 
     if model_test:
         print(' ---- OUTPUTS FROM FLUX WEAKENING ---- ')
@@ -202,7 +201,7 @@ if __name__ == '__main__':
         print('Iq bracket coeff c: ', sim['c_bracket'])
         print('Iq bracket coeff d: ', sim['d_bracket'])
         print('Iq bracket coeff e: ', sim['e_bracket'])
-        print('Iq FW bracket: ', sim['I_q_fw_bracket'])
+        print('Iq FW bracket: ', sim['Iq_fw_bracket'])
         print('Id lower bracket: ', sim['Id_fw_bracket'])
         print('Id upper bracket: ', sim['I_d_asymp'])
         print('Flux Weakening Iq: ', sim['Iq_fw'])
@@ -218,6 +217,8 @@ if __name__ == '__main__':
 
     print(' ---- OUTPUTS FROM POST PROCESSING ---- ')
     print('Current Amplitude: ', sim['current_amplitude'])
+    print('Iq FW: ', sim['Iq_fw_dummy'])
+    print('Iq MTPA: ', sim['Iq_MTPA_dummy'])
     # print('Voltage Amplitude: ', sim['voltage_amplitude'])
     output_power = sim['output_power']
     input_power = sim['input_power']

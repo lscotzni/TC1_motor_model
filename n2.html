@@ -77,7 +77,7 @@ function handleError(evt) {
     display: none;
 }
 
-.window-draggable-ribbon {
+.window-draggable-header {
     cursor: grab;
 }
 
@@ -648,7 +648,7 @@ function handleError(evt) {
     height: 100%;
 }
 
-.window-theme-help h3 {
+.window-theme-help .window-body h1 {
     padding: 0;
     margin: 0;
 }
@@ -836,215 +836,6 @@ i.help-text-icon {
 }
 
 /* ^^^^^^^^^^ End Legend N2 Window theme ^^^^^^^^^^ */
-
-/* vvvvvvvvvv Begin Child Select N2 Window theme vvvvvvvvvv */
-.window-theme-child-select {
-    --header-height: 26px;
-    --footer-height: 15px;
-    --ribbon-color: #0000a0;
-
-    background-color: white;
-    border: 1px solid #a0a0a0;
-    /* transition: opacity 0.25s; */
-    box-shadow: 3px 3px 3px 1px rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-    
-    overflow: hidden;
-}
-
-.window-theme-child-select .window-header {
-    background-color: var(--ribbon-color);
-    margin: 0;
-    font-size: 11pt;
-    text-align: right;
-    white-space: nowrap;
-    height: var(--header-height);
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: auto;
-}
-
-.window-theme-child-select .window-close-button::before {
-    content: '\2715'
-}
-
-.window-theme-child-select .window-close-button {
-    color: none;
-    opacity: 0.4;
-    text-shadow: -0.5px -0.5px 0.5px black, 0.5px 0.5px 0.5px white;
-    position: absolute;
-    top: 0px;
-    right: 8px;
-    cursor: pointer;
-    margin: 0;
-    font-size: 11pt;
-    font-weight: bold;
-    line-height: var(--header-height);
-    padding: 0;
-}
-
-.window-theme-child-select .window-close-button:hover,
-.window-theme-child-select .window-close-button:focus {
-    color: #333;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.window-theme-child-select .window-header .window-title {
-    color: white;
-    display: block;
-    font-weight: bold;
-    line-height: var(--header-height);
-    position: relative;
-
-    /* Stuff to prevent title bar from being too long */
-    text-overflow: ellipsis;
-    width: auto;
-    direction: rtl;
-    text-align: center;
-    margin-left: 15px;
-    margin-right: 25px;
-}
-
-.window-theme-child-select .window-header .window-title::after {
-    content: ' Variables';
-}
-
-.window-theme-child-select .window-body {
-    color: black;
-    border: 0;
-    margin: 0;
-    padding: 0;
-
-    top: var(--header-height);
-    left: 0;
-    right: 0;
-    bottom: var(--footer-height);
-    overflow: hidden;
-    visibility: visible;
-    border: 1px solid gray;
-
-}
-
-.window-theme-child-select .window-footer {
-    background-color: var(--ribbon-color);
-    color: white;
-
-    height: var(--footer-height);
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-
-/* Child select window table */
-.window-theme-child-select .window-body .table-container {
-    max-height: 280px;
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-
-.window-theme-child-select .table-container table {
-	overflow: hidden;
-	background-color: white;
-    min-width: 300px;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin: 0 14px 0 0;
-    padding: 0;
-    border: 0;
-}
-
-.window-theme-child-select thead th {
-    text-align: center;
-    font-size: 8pt;
-    margin: 0;
-    border-top: 0;
-    border-bottom: 1px solid #a0a0a0;
-    border-right: 1px solid #a0a0a0;
-    background-color: #c0c0c0;
-    padding: 3px;
-    white-space: nowrap;
-    position: sticky; /* Only seems to work on Firefox */
-    top: 0px;
-
-    color: #202020;
-    min-width: 30px;
-    font-weight: 300;
-}
-
-.window-theme-child-select tbody tr th:last-child,
-.window-theme-child-select tbody tr td:last-child {
-    border-right: 0;
-}
-
-.window-theme-child-select tbody tr:last-child th,
-.window-theme-child-select tbody tr:last-child td {
-    border-bottom: 0;
-}
-
-.window-theme-child-select tbody td {
-    font-size: 9pt;
-    margin: 0;    
-    border-top: 0;
-    border-left: 0;
-    border-bottom: 1px solid #a0a0a0;
-    border-right: 1px solid #a0a0a0;
-    padding: 3px;
-    white-space: nowrap;
-}
-
-.window-theme-child-select tbody tr td:first-child {
-    text-align: left;
-}
-
-.window-theme-child-select tbody tr td:not(first-child) {
-    text-align: center;
-}
-
-.window-theme-child-select tbody tr.even td {
-    background-color:white;
-}
-
-.window-theme-child-select tbody tr.odd td {
-    background-color: #d8ffff;
-}
-
-.window-theme-child-select .button-container {
-    height: 21px;
-    width: 100%;
-    bottom: 2px;
-    text-align: center;
-}
-
-.window-theme-child-select .button-container:not(:first-child) button {
-    margin-left: 5px;
-}
-
-.window-theme-child-select .button-container button {
-    font-size: 8pt;
-}
-
-.window-theme-child-select .sort-up,
-.window-theme-child-select .sort-down {
-    padding-right: 3px;
-    padding-left: 3px;
-    color: #404040;
-    font-size: 8pt;
-}
-
-.window-theme-child-select .sort-up:hover,
-.window-theme-child-select .sort-up:focus,
-.window-theme-child-select .sort-down:hover,
-.window-theme-child-select .sort-down:focus {
-    color:blue;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-/* ^^^^^^^^^^ End Child Select Window theme ^^^^^^^^^^ */
-
 </style>
 
 
@@ -1108,7 +899,7 @@ body {
 
 #n2-resizer-box {
     position: absolute;
-    right: -5px;
+    right: -3px;
 }
 
 .inactive-resizer-box {
@@ -1245,8 +1036,6 @@ body {
     padding: 5;
     background-color: #fff;
     border: solid 1px #dfdfdf;
-    transition: visibility 0s ease 0.75s;
-    -webkit-transition: visibility 0s ease 0.75s;
 }
 
 div.offgrid {
@@ -2258,7 +2047,7 @@ div.awesomplete li[aria-selected="true"] mark {
 
 
 <body >
-<div id="all_pt_n2_content_div" class="non-embedded-n2" data-openmdao-version="3.15.1-dev">
+<div id="all_pt_n2_content_div" class="non-embedded-n2" data-openmdao-version="3.10.0">
     <div id="ptN2ContentDivId">
         <!-- Toolbar -->
         <div id="toolbarLoc">
@@ -2504,16 +2293,12 @@ div.awesomplete li[aria-selected="true"] mark {
     </div>
 
     <div id="toolbar-help-container" class='window-inactive'>
-        <p><b>Left-click</b> on a node in the model hierarchy to navigate to that node.<br>
-            <b>Right-click</b> on a node to collapse/expand it.
-            <b>Alt-right-click</b> on a node with variables to select which ones to hide.<br>
-            Note: Right-click in Firefox displays a browser menu. To disable that,
-            visit <b>about:config</b> and set <code>dom.event.contextmenu.enabled</code>
-            to <b>true</b>.<br>
-            <b>Hover</b> over any cell in the matrix to display its connections
-            as arrows. Click that cell to make those arrows persistent.
+        <p>Left clicking on a node in the model hierarchy will navigate to that node.<br>
+            Right clicking on a node in the model hierarchy will collapse/expand it.<br>
+            Hovering over any cell in the matrix will display its connections
+            as arrows. Clicking that cell will cause those arrows to persist.
         </p>
-        <h3>Toolbar Help</h3>
+        <h1>Toolbar Help</h1>
         <div class='help-graphic'>
             <img id="toolbar-snapshot" alt="Snapshot of toolbar buttons"
                 src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADoAAAKNCAYAAABx63jMAAAgAElEQVR4nO2deXwU5f3HP3sfue/7voEk3PeNcgiI1gOlKiLaSrW2tXftr7+2L6tW21ptrdqK2NaiQv0hBMRalBsiN+FKICTkziabZO97d35/LLtks9fs7sxkGeb9D9mZZ2aeNzPzzDPP853n4REEQeAWgD/aGWAKTpRtcKJsgxNlG5wo2+BE2QYnyjY4UbbBibINTpRtcKJsgxNlG5wo2+BE2QYnyjaETB3I7LCh36zBkEUHAEgSxyJNEg8Jn5ks0H4UhVmNQ8pGnFG1wUbYPQ/OE2B8YgFmp1YiQ5JAaz54dPaPHh5owqc9p+FA4EPwwcPyrAmYmVJBV1boE93VcwqHBpo8lmVKE5EmjgMA9Fu06DWpPNbPTqnA8qyJdGSHnku3Qd3uIZkpTcR9udORLU3ySNdtGsLWznq38KGBJuTJU1GTkE95nigvdW2EHdu7j7t/Z0oT8UTRQi9JAMiWJuGJooXIlCa6l23vPu51L1MB5aJnVG0w2C0AgGRRDJ4oWgi5QOI3vVwgwRNFC5EsigEAGOwWnFG1UZ0t6kUb1DcyOTu1MqCkC7lAgtmplT73QRWUiw5ef04CQHlcFunthqcdvg+qoFxUbTW4/04QyUlvNzyt2mqkNE8ADaIxQqn7b73NTHq74WmTxDGU5gmgQTRZHOv+u82gJL3dNUO/+++sYaUwVVAuWhF74147pGwMWisCAAcIHFbeeO5my5Kpzhb1olOSSyDkOXfbYRzAB+2HA8o6QOCD9sPoMA4AcJbAU5NKqM4W9aJygQTz08a6f5/XdOCD9sOwOGxeaS0OGz5oP4zzmg73sqWZtZAJxFRni54q4ML0sWg3KHFZ1wPAKXulsQfjEvKRJokHAPSbNTivbod52H+AgMeHnXDATjgg4FF7Dmir1FsJO7Z1HcNp1TVS6SvistGk7QbgrBo+UjA3pMdTMGh9TQOAM+o2HOi/iJ4RbyouMqWJWJU9GQXyNLx25VMozGoAQJxQirUF85BDUcFEu6iLDuMAuo1DGLToIOTxkSVLQqY0ESniWPDAA+B8SX/z6ufuy1nEE+D+vBkYF58X8fEZEyXLZV0P3ru2H8SwknppRi3mpY2JaL9RJwoARwcuY0fPSY9lk5OKcVf2lLALqahsBZyRUo4ZyWUey04MtWBf/8Ww9xmVogCwInsSymM9336ODTaHvb+oFeWDhzX5sz3qvaWxmWHvLyrv0eHYCQdOqVrBAw81CfkQh9kOHPWiVBG1ly7VcKJsgxNlG5wo2+BE2QYnyjY4UbYRdrtum74ffSY1lCYt+s0aGK93/jKNXCBGqjQeqZJ4pEvjURCT5jNdyK9pGqsBX/aeh8KkpiSjVJMhTcDCzHGIH9EmHJLoJU0XjvQ10RJjQCVCngCz0itQGZ/jXkZa9KK6Ewf7LtGWOTqYk16FMQm5AEgWRmqLAUf7m4InjDKO9jdBbXH2wAcVJQgCexXnYSMctGeMamyEA3sV50EQRHDRPrMmagseMihMavSZNSREb2JJF30mdXBRhdF3L9jNhMKoIiHKgjOqIHNGdTYTE3mhFZ3NdOvUdTlRtsGJsg1OlG2MuiiVQVOBGFXRyvgcrC6c6fGCTBeMfbI1ksr4HMzLcMYOuf5t1HTRdrxROaPDJV3MyxhD65llXNSXpAs6ZRkVDSTpgi5ZxkR9SfabNNjTe87r5Z4OWUZE/Z3Jc6p2XNX2okHV7rWOalnaS91Al2t1kvNju+pE3x/dUVka0yoa7J5Mk8RjYea4gPugSpa2SzdLlugh6evjgUBYHDZ3xO68jDHIkkX2LQxtoj1Glfss7FdcRL9ZE9L2A2Yd9isugIDzbPZE2EhH66W7X3ERlzXd6DGqUBofemRmk6YbaqsBvRS0RNJe6kZ6JqiQBKLg7YUpRq1SDwB1nSfRbRxEpiwRq3Kn0HqsW+aM3jKijF26SpPWa5nZYQUAWOw2dBkHPdYNmqn9/Dloj/fbV/5L6QFHi1vm0uVE2QYnyjY4UbbBibINTpRtcKJsgxNlG5wo22C8FdBBONDVr8CAehBxMXEoyfbdwWSxWtCm6ITOaEJueibSEiIbHIZRUZPVgmvdHTCYnaPEqXUaGM0myCRSj3QqnQZtii7Y7c6vMRSD/TeP6JBOg/beTtgdnrH5LhkAcBAEupUK9A0pR6SJPJ6fdlGCINCl7EXf0EDAdBabFa097dAbqR8TEKBZ1GK9nnlT4Mxr9Fq09nZ6nF2qoU3UbLOgsf1q0MwP6tRQqgYDpqEC2h4vOr2e1BlSaZmJ2adNND42DmKRKGi6lIQk8Hg8urLhhjZRkUCIivxSxMXEBkyXII9DeW4RREJ6y0Vaa0YigQClOYXITskImC5GJkdVQSkSYuJoywvtVUAegMyUNJTnFQY8a0KBEMU5BchOzQRouJIZq+vGymJRWVCKWLnnpSwQCNx/8wBkJqeiPKcIIqFoWJrIs8lopV4kEKIstwDZKRmQiMRITUyGdET1DwBi5TGoyi9BcnwCxCKx8yxHCNdtyDY4UbbBibINTpRtcKJsgxNlG5wo2+BE2QZtLVI2uw1Xuq7BYrUiKyUd6YkpPtNpDXq09LRDKBCiICMbsTLqJ7UBaDyjar0WRpMJdrsdnX09aOluh93h3c7bpxqA3W6H2WLG5c5WKIbIT4YTCrSJjuwYUuk0uNR2FYYR3ROO4Y3cBNDV34vm7jbYKO6eYPQetVgtaOpoQb8qcIeTRqdFY3sz9EZDwHShwHhhRBAEOvp60NLT4dWFOByL1YrLHa3oC/KfQpZR++5FpVXDbDFDwPf/f02AQGdfDyw2K3IjbAkc1ceL0WyCyRJ8yjGVJvKOqFEVjZXJIRUHnxIw1c+jKRRGTTQtIRmlOYXuSW18wefxUZSZi8zk1IiPx/g9yufzUZCRg6S4wFPlSiVSFGflkTrjZGBUVCaRoig7D1JR4MynJCQhNz2L0pm2aBMd2TGUkpCEvPQs8EdkfngnE5/PQ156DlLiqZ/yjzbRhNh4JMRoYLZZkZmchmQ/l2p6cipMFjPEQhFy0zMhFXt3OlEB18nENjhRdwIGIkboRswXBheV8IOH0EQ7Ir4guGigmsvNAy+4aLQP7E0Gq8MWXFRt1jORF1pRm/XBRQdNWjhuwvGvXTgIBwZNWnKPF7315h1j15V3UqJaszFgs0e0Ync4oL0e1k5KlACBIZMWN9OkeQRxPc/XR0UiXTMy263QWKhrlaMbjcUAs93q/h1SFVBnMUJvif77VWc1QWfxbD8O+TVNZdbBRtgRL4mJuqoEQRBQm/U+C8+w3kd1FiNsDjsSpLHuWdhHG7vDDpVZD5PN97wzYb94m2wWmHSDkIukiBFJIRaMThOxxW6D3maEIUizacS5M1hNMFhNEPB4kAglEPEFEPGFzop0gMbpcHA4HLASNljtdlgddphtZthJPgkoOw12goAhiisW0XGDMQAnyjY4UbbBibINTpRtRIWohC/y+SYkE4jxaNlCZMmSIj5GVIhmyhNxd+F0D1mZQIxHyxeiOC4Dj5YvRIY0cMdxMEZ1NNbhjE8uAgBsu1YP6XVJ15lUWfTQWCP7yD1qRAGnLA88pMsS3JI9xiG8d/nLiOc3jSpRAKhNLnT/TZUkECX3qC/MDiv+fmUvZTPVRq2ohC/C0twJAdulhDw+5mWOhZAnCJDKSdSKAs57dmRpPJwEcQwWZdfgodJ5QWWj4h412Sxo0Sp8rosXyTE+pQinB1r9bl8cl4GHSufh/eb9fnv/okJUYVLjvStfRrQPl+y/mvfD6kM2qi/dUCmOy8CK/Mk+19F6RiekFGNiSrHf9Z92nESPcYiy49kJBy6oOnyuo1X09EAL8mNTMSmlxOd6qVBM2bHshAMfthzCZXW3z/W0X7rb247h5MBVWo/hkmxS+58qhZF79PPOM7RMUW9x2GAl7Pig5WBASYCBUlcqEGFt2QLIBNRdpi60ViNeOPNv2EmEHtB6RqUCER4tW4RsuXNgtC7DYMDnYTiQkQRoPKOyEa9a3YZB/P3KlzDZrXDA4beAogvaRONFMiSKnZ9fdRuG8N51ScBZQDFN0DDWX5z6IOydZ8mSsCR3Aj5qOeSzMJIKRG55uqG1MOoxDgWs2jElCZAojKiMax8tJHxRcFGp4OaP7pQISISxCohoC8kIHT5BIrrTagttYrdoxGojEd05pA1tYrdoRK3TkAhj1WvguAnjAF04HA4MaFXkqoAGw80TGjcSV97Jier0cFAwxi3TOOwOGHTOwGpy0Z0EAbVKddNFdw7PM+nagMVigV5L7RRfdKLTamGx3Kh2hlTt0ev1MN4E96vBYIBB75nPkOu6GrUGNpsdsfFxURndqdVofZ6MsCr1Br0eDrtTdvhnkaOJ3W6HTqOFyeQ7TC/86E6TCSaTCTK5DHKZHELx6NSJbRYrDEZj0Fsq4tc0o8EIo8EIPp8PiVQCoVAIoVAEoVAIPgWjqA7HYXfAZrfCZrXBZrPBbDKTrsxQ9j7qcDhgNNAz9DoV3PwvmyThRNkGJ8o2OFG2ccuI0tqALRGIUJtRAh4PaFC0wmgLPnYRAMzJr8ZD1bd5Lf/uf96A0c+XSsGgTVTMF+L7M+5DQYJzeoUe3SBePvIRzCQySseQCLSJVqUVuCUBICs2Ga8u3kDX4YJC2z0abc0utJ3RS8p2tKp6UZToHBStRzeAl49sIXXpziuoweqxCyjND22iVocNf6jfiur0IvB4fJzva/X65FEiEMHqsMEx4uw3D3Xjk6bDGJNWgPLkXFwe7MTF/jZYfYwUSRZ6J5+y23Cy54rHMh6AxSWTUZtRguy4VBCEA82D3TjYcQ4NihYAQLu6D+3qPkgEIpQn5+LqYDd2N/vuPK5OL4LVbkPjgO/4IheMhsjxAKytXYIEaQy2NR5Gy1A3BHw+npq8Ct+afCfeO/Mf1HddCmmf03KqMCGzFG+drMO5Pv/xEYxWGFaWz0S8RI43jm/HlcFO2AkHpmRXojI1H0c6LuCuytkoS84Jeb9CvgBPTlqJmnT/UWqMik7KLsfWiwdgu36vFSdlYc24hWga6MT75/Zgx+UjmJBZFta+hXwBvjlpBWoyfMsyJpokjYVMKEaPzjkWZ6I0Fk9OWgm1WY+/nqyDgyDQPNiFMWm+J3Ukg5AvwDcnrkC63HtwNsZE7YQDFrvNnaENk1ZCKhTjjePbobv+JbFMKIl4BI+rQ90YNGm9ljNWGGnMBphtFqTJE7GifDoKEjPx9sk6dGlvDBxclZqPi8q2sI/RONCBN4594r41hsPoPXqsuxHPTr8X03OqsOtKPU73NrvX5calYmHRBJzovhzWvhuV7fjzsU9gcfjuoWf08fKfqycQL4nB7Lxx6NUNQi6SQC6SYkxqAVaUT8f7DXvQpvYdcu4Pk82CS8p2vHF8O6x+JIFRCDXfenE/urRKTMmuwNerF8Fos+BSfxv+dmoXrgzeiNCMFcswJq0AAFCWnAOJQOQx9omLD85/SSoeMGjk2Dd3vRqqC2l44LlHpxnJ01PuQnV6kfv30c6LeO/sf8I+1qi2MPiTBOBVcQinIjGcqG1KuTbiXr2m6o1of1EruunMZ7iobIPBasJZxVX863xkn4tExXcvvlCZdHjtq/+jbH9Re0aphhNlG5wo2+BE2QYnyjY4UbbBibINTpRtcKJs45YRHfWmlPyEdCwoHI/SpBwkyWKhtRjRpVHiUPs5nFVcDdBOGBqjKjo3vwZrqhd5fISQLI1DsjQO1elFONbViHfPfBawWZQsoyY6r6AWa8YtDJhmak4lAFAiOyqi4zNL/Up+0XoKJ7ovY3J2ORYVTcTUnEpoLAZsvbg/omOOSmG0pNj3CDVdWiW2XNyPFlUPtlzvowGcl7hMGNn8aYyLyoQSFCdlhbSNWCBERWpeRMdl/NJNkcf7XZcTl4r7x8xzX7o5cTem+kuV+d+ODIyLmm2BhyRYVDQRi4omei331YsdCoxfukqDOqxMK/SRDfDEuOjMvLEQ8EP7nk1l0qEpSGRYMBgVnZU3Dg/X3B7SV4oEgE+aDnvFC4YKY6LhSALAB+e/wNHOixEfn5HCKBxJO+HARxf2YX9bAyV5oF2UrOS5vlbweDxozQZ0aZWo77wELYUT6dAqSkbSTjjwWfNx7Lh8hM6s0CdakZIXVPIP9f+OuDQlC22FUVlyTtDL1cLgeEaM14wGjVoc7jgPtVmP1ggjTUKBcdEBowY7r9QzfVj6Lt1WVa87bNUFATB2T45kVEPkmOSWaQXkRNkGJ8o2OFG2wYmyDU6UbXCibIMTZRucKNvgRKninso5SJbF0X2YoNAqOj6jBItLJuPxCXf4HdFGLBAiJcLebDLQJpogicHDNbcDAEqSsrGyfIbPdOvGL8Uv56+lKxtuaG2p15idnURGmxk5caleLfcpsnhMyCyN+JNJMtAmeqLnMr68dhqAc9Cmv5zY4RUSNb+gFjzw8GXrabqy4WbUSl0RX4hZ+eMwaNLirILeqYyAURSdmlOJGJEUB9oaIuq2F/IFWF42DSJ+4N6VURNdWDgeNocdB9vPuZdVpuRhbc1iiPlCzMgdgzn51UH3kyKLx53lM/H0lFUBZUdFtDQpG7nxaTje3QSd5cZQtc1D3ShOzsaD4xbinqq5uNhPfpSNytR8PD31Lr+yoyK6oGgCALgLKxc2hx3vN+zBzLyx2N92FgPG0KZ3qEzJw9NT74LYhyzjoonSWEzILEXLUA/a1X1e64sSM2G0mTEpqxzCEOORAKfsg9XekaOMi87Nr4GAx8fea2e81qXJE7GsdCpeObIFYoEQy8umhbx/m8OOUyOG/wIY7ggW8PiYW1ANtVmPkz3eg7/IhGK8dXIHurRKvHF8O7Jik0Pav81hx9snd/ockotR0cnZ5YgTy7HzSr3P8U3aNTcu5S6t0mMIoGC4JBv6WnyuZ1R0Wk4V7IQDBygKkgIAs90Ki8OGv/o5ky4YFT3Yfg71XZegNutJb7OyfAYOd5zHoNF71CnAGRD53c/eCDoCDq2irlIzURqLZaVT3cuH/x2MBYXjsahoAjaf+xLHuht9piEzzA+toq6Hd7I0DndVzIpoX+snLEOiNBaft5wIa3taRfsNKr+FA1kqU/IhEgjx+dUT+KL1VNj7oXdG2d5mj3HFwuGpKavwZetpXFK2R7SfUf9kKxhvHN9OyX64VkC2wYmyDU6UbXCibIMTZRucKNvgRNkGJ8o2OFG2QWlTSllyDsalFyEjJgkdmn5c7L/m80O7SVnl6ND0oU+vIr3v8ZmlUOiG3FM0hAplZ3RCZimenX4fFhSOx/sN/0V2bDJ+MutBTM4qd6cR84V4cOwCiPiCkCQB4JyiBfMKakh1DvuCMtG1tUvA5/HQru6DzmpC5fUx5stTbgz98eTklejUKkOe0wVwNlJ/eGEvatKLsaBwfMjbUyKaJk+ETCgGcOPj1x1Nh3FGcRX7284CAJaWTEGiNNajKz8cPrywF/dWzXXP9UQWSkRz4lO9lu1va8CbJ5xdgLnxabizYiYaI2ybBZzfnw4atXhi4vKQ5leLuDCalFWGaTlV7t/pMUm4q2IWOjX9OHG9D3R+QS0EPL7XvEkPjl2ABGmsx7Lzfa24MtiF5WXTIBY4J1je13bW4z/pkrId8wpqUJ1eTDp0J+IzarHbPD6IdRAOGKxm9zIRX4jJ2RUAgAGDZ0zC9stHkBufigmZpZiQWYp4iRyHOs5DoR/C0c6LqEjJw4G2Bq8rYcCoBoCQCqaIRc/1teLcsP4VpUGNz1tOuPtcChMz3PfvyOnEDFYz3jvzH3dEWUlSNsamFYLP42FZ6TS8c/pTn/O/GK3O/ZSn5JLOJ+0VhuEhrL4mcWwe6vaIZ3ik5nasGbcI5/tbcaH/ms99uvYjEYgQI5KSygftoknSG6Ijz6iLbY0H3aE2idJYFCdl4fOr/rsHh+8niWQsMO2iwzPlL5zGYrfhH2c/d//OiUt1z/Xii+H7MVh8Tzk/EtpFhwdcBBogzWy3eswt+nD17ZAIfE9r79qPxmzwOdGULxgQvVE3dRVKI4kVSfHguIV48dBmKA3OEjVZFoevVc3xmV4mcu4nlDhfSkT5vBu7GXl5Gqwmd1hNjFjmta2QL8A3Jq3A51dPQKEfwj8b/uteN6+gFqU+JrRxFUDX1AyKSgQijBs2pVBOfBqKEjMhGCa/67JzJI2Rw+QlSGLwjYnLkRef5p7AsWmg010w8QCsrVnsVbIWJ2XDZLPgSMcF0vmMuGZUm1kCtUnnEV8wJbsCcWK5+1l6RnEV7Zo+VKbm478tJ93ppudWQWlQQ2lQY2npFOy4fBTzCmpwZkQ4QGVqnnvWSwGPj5LkbGy5sA9DJh3pfDI2skZ+QjqemXo3fnv4I/QbQntFG86svHGYml2BV7/6OKTtGGthaFf34Z1Tn+LR8UsgF4U3PGVBQgbm5leHNdsWo00pjQMd+ODcF/h69W2Il8hD2rYqNR+LSybjj199HNIl6yLopfvU7tcjHmVxJHweD2KByG9NyRfxErn785JQkQnFwc+ov2dfJDgIIiRJAGFLAoCUjCg/5JH8ohAHiXvUbCY3bXw0Y7aag4v2DYXXvBhNKFWDJERVA7BTXBgxicPhQPdAH7nHi1oT2mcZ0YRK43xJICU6NDQEu/3mO6t2ux1DQ85xeUmJEgSB3j4Fgjxyo4qReSZdMzIajRgcGqQtY1QzMDgAo/HG52AhVQGHVKqb4n5VadRQqdUey0J+TetX9sNqtSIlJRm8KKtMEAQB5YDS58kI631UpVbBarMiLSUVQmF0BHFbrVYoBweg1/v+1CTsXOr1euj1esTFxSExPh4SCbn2Vaoxm01QazTQaAM3kkV8OrRaLbRaLQQCAeRyOaRiCURiMSQiEQQUn227zQaL1QqLxQKTxQyDwUD6sUdZTux2u1Ma5JofmeaWiWHgRNkGJ8o2OFG2ccuI0lZRXVI1HUvHTA9pm+99/Ef332KBCCurZ+PjM3spyQ9tohlxSajJLg17+x/f/jDml02E3WHHJw0HIs4Pra8eaqMOLQPd7t+Z8SnIik8BAJzuvDEOg0wkRmVGofv3w1OXYX6Zc16mp+bei46hPpzs8P19N1loFX378Db859JX7t+PTF2GtdOWAwB+sO1193I+j4dND/0PAGBu6XisnXbHsHV8/GLZejy15RV0qryHHCELbaJd6n7svXwyeEI4uyjeP/YZAOBA8xnc9qdvozq7BH+853tY9KenKckPbaXu3ssnQxqQ6YvLx0M+hkggxENTlrpD6QJBm2ioo06FM0pVRlwy1k1fgd+sfDKoLCueoxPzKvDCnRsCyrJCFAAm5JbjhTs3QCL0LcsaUcAp+535q32uY5Wo1W7DgWbvAaEAFola7Tb8avc7qL923ud6Voi6JI+2+pYEboIhRAJhspphtlnx690b/Z5JF1EnOqdkPP73jvXu7o4vvv1naM0GPL3ld15VQKVejTvf/gGpqJmou3QPXj2D9+p3uX/bHQ78evdGv/VcsqFBjJxRVyW9NqfMa9mZzis42+U5vN37xz9DQXImFpZPxp8PbMWpjqaI88CIaPX191IHQbhfz1zLutW+R4p7ec/7uNDTgh3nDlKSh6CRY1S9PYw2UXeP0gUnyjY4UbbBibINTpRtcKJsgxNlG5wo2+BE2caotQIuKJuEh6Yuhclqxqb6XTjRHvpAMaHAuOis4ho8On0FilOycbilAXESOX676imc7bqCjUd24EKv/0H1I4Ex0Sn5VVg3YyUq0vNxov0SfrfnfTT1OYcGmZxfhcdn3onX7/s+jraex7tHd3jEPlAB7Y1jtTlleGzGSozLKkZDdzPePVqHc92+B3KZVzoB66avQG5SOvZePolN9Tv9thKGCm2iibJYPLdkHSbmVaBR0YZ36+twsj14ZAmfx8Piqul4ZOoypMYkou78Qbxx4N8RzdsE0FjqjssuwcS8Cii0g3h930ekJAFn2+9nF4/inSPb4SAcWD52FmJD/HrYF7ReurOKa7B22nKUpObgaOs5fHDi86CFzZyS8VgzeTHK0/Od92t9HVqUXV7pphWOhcVm9YhXCgSthdHhlgYcbmnAyuo5+O781ZhR5Bx/6Eef/NkrQGpx5TT8+PaH3b9/tP3PAa+C2yqmYk5JLX75qf8+0eHQekb5PD5W1czFo9OWgwABgiAQL41xr39m6++RHpeMny9d5152bbAH6bFJMFjNeOPAVr892M8tWYeF5ZNI9Y0CNIpmxCXjhTs3ID8pAzvOHcKm+jrozEbES2Pw1wd/irTYRI/0pzsv47m6N2G2WZEak4Cn592HOSXjcbT1HH61eyOsw0bBGi4KuDqCN+Joq/+B2+ibxDE9D4XJWehU9ePQ1TPQmZ0fxGlMejyw6edYvenn6FYrcaqjCcvffBY/2PY6zDbnCHSDBg0OtzRAZzZiUn4lYiXeY6wMRyQQ4n+XrUdOQprfNLTdo4eunsUPtr2OddNX4Hd3P4NLvddQd/6gOzZQqVPh4X/80mMbHnj4+pQlWFQxBXlJ6dh35RTeq9+FIUPwb2ku9LSgTzfkdz0jvWk/uf0R3F55Y9ae1/Z95NUd+N35q7Gy+sawPi/v+adHwORIhl+6wy97f9Ba6k7Kq8QTs1ahLC0P+5tPQSqUYFrhWHxn/mp8Z/5q/OXgx0iLTcJ9E25M6FZ3/hDGZBbhh7c9hMn5Y/BufR16AtSOTnU04bm6t9wDL/qDNtFphWPxwsoN6NEM4Kktv0OjwjlQGp/Hx8+XPop5pRPxrTn3uNNvqt+J9487Izx54OH2yql4duGDmFVcgwc2/Rwak+dXhEarCSc7GvHzureDSgI0il4b6EGjog2VGQV4bMYKvFe/Cxd7W+EgHPj17nfB523CE7PugtZkwOYTnoO8zC2dgDWTF0MoEODLppPQD5vo0cVr+z6C3RF80ikXtN+jM5q5+0kAAA1oSURBVIrGYe205ShLy8Oxtot4r36n+63FV9p101eiJDUH9dfOY1P9TjT3d0Z0fBeMde3PLq7F2ml3oDg1B0dbz+PvX+3ClX7nEJcT8yrw2PSVqMosxKmOJrxbX4dLvb7HBAwXxmMY5pVOwNppd6AgOQuHWs4iTiJHbU4Zzve04N2jdV4RKlQxKsEaPPCwoHwi7p94G8w2K94/thvHaW5K4aJS2AYnyjY4UbbBibINTpRtcKJsgxNlG5wo2+BEqWJl9Rw8MOl2v+vlYikenLSY9hHpaI9hyIpPQVZ8KopTsgEA3RolTNdn95CLpXh51dOoyixEdkIqfv/lZtrywcilO7d0PP625mf425qf4aEpywDckIyRyGBz2DEpv9Lv17xUwEhUyu6LR/Gn/VsAwN0/srhyKtQmHf58YCt+/7Xv4PvbXsdvVz2F/KQMtA8pKM8DI6J2hwMxYhmqMgtxpvMy9BYTPmk4gE8aDrgv6R61Eo/841e05YGxUndWSS2emb8aY7NKmDqkB4wFVNWdO4i6ML8cDDUwwxeMndEZRdV4fsU3PUa5IcttFVPx4p3fwvTCcWEfnzFRpU6Fq8ouqI3O3mupUAzZiKkWEmWxvjYF4Oy+/+Udj2NGUXiyjIle6e/Apvqd6NE4R0lfNnYm3nrgx0i9HrRRm1OGf639NfKTMvzuwxmr8Lg7jCcUGBNdVT0XHz/+kvvy296wH42KNjy3ZB3EAiF+s/JJvHHw30EfLWQCM3zBmOiB5tN4ec8/0dDtnMvFQRB46fN/4GjrOfB5fPz18Cf49MIRUvsKFpjhC8ZK3SGjFqc7Lnt0wxMg8PKef+KLpuOke9NcgRkj446CwdgZfXDSYuz+1quYVzrRY7mDIEhLnupows92BI4+8QdjZ3Tb2X040X4JLQPeAYzBCDUwwxe0i0qEIiTKYpF3vTQtTvGeNQsAhgwaKPVqn+tCDczwBW2iEqEIL6zcgPG5zqlzZ5fUBt3m0wtHfL6qRSoJ0HiPzi+b6JYkyx1jZyI3MZ2W/NAmWpCcFTyRD1JHRH1SBW2iXap+EAgtDt5ks2DAz30aKVywBtvgRNkGJ8o2OFG2wYmyDU6UbXCibIMTZRucKNu4ZURpa+7kgYen5t6DxVXTESMmPx1gj1qJw60N2HR0Z8hTYAeCtjM6u6QWd9fOD0kSALISUnHv+IX4y+ofIVkeT1l+aDujRSmezZ0qo47UpMpJ8njweTwUJGfiD9ejVahoGWSk72XLqT14+/AnpNK6QgAAIC8pA3/42nfw7P+9FrEsI4VRp6o/hLSeg3rnJqbjuSWPRpyHm6LUrc0pw4QQuzdGclOIAkBZWp7XsqiY2GY4Qr6AdFqRn7RSkdhrWSgT2zBSGH1t/HxIhCLYieDdf+HEErkmtvnZjjf9dhQzIpqbmI5vzr6b1mO4JrbxN/DETXOPkiHQxDajNlweAQLH2y6iUdGOyox8TCkYE3EUdqCJbUZN9LV9WzyCIFdVz8Uz8+8Pe39RObFNj2bAK9Jz+7kDIQdJuSAzeNOoiCquxwOOpNfPcn+4Jrb55afBR6galUu3KrMIsRKZezAnAIiTyFEVYohr1E9sIxGK8Mpd30bh9YCOwuQsvHL3tyEShP7/HlUT2/iiPD0fG7/+HMw2q99J3aiEtjPaOtBDKh1ZSbL78wdtooeunsW2s/ugt5gi2o/eYsK2s/tw6OrZiPbDhd+4CKeAiDZixNLgonHiyAcIHW3kIhKifJq/AmQCAXgkCiNLaCHd0YjNZAkuquofZCIvtKLqHwwu2qdQwGGPPDB4tCDsDvT1KkhcugRgHtIxkCV6MF3PO6kKg1GphsNGrk4ZTThsdhiVzoZvcjUjBwFd1wCC1C2iCoJw5hkOZ55JVwFtehOM/SraMkY1RoUKNv2N6mdIdV2TUuu+5qMZ05AWpkHPMXlDrt8ZegZht1ghT08EjxddlQmCIGDoHfJZeIZVkTUPaEFY7JBnJoIvio66sN1ig1GhgkVr8Lk+7FxatAZYtAZIEmMgSY6DUOrdZcAENpMF5kEdzKrAt1TEp8Os0sOs0oMnEEAcJ4VAIoZAJoJALAJfSL7PhQwOmx0Osw02kwV2swUWrQmEneGmFMJuh1mlB6APmnY0YFWXRCA4UbbBibINTpRtcKJsg9EaeZwsBiumL0BVfilyUjOQk5KB1IRkKNWD6BpQoEupwKX2Zuys3wutkdoaVtAuiQkb7oz4IKXZBXhg/nLcMXU+ZJLg0Z4mixm7vtqLD/ftQnN3W8THB2gW5fP42LByDdYvvS+sd1eCILDxs614s24zHCRilAJBm2hSXAJeWv9DTK2oCWv74RxrasBPNr6CIW34EZ60FEZJcQnY/NNXKZEEgKkVNdj801eRFJcQ9j4oF+Xz+Hhp/Q+RmZRK6X4zk1Lx0vofgs8LL8uUi25YuYb0mbzSdQ1v7/oQV7rITXkytaIGG1auCStflIqWZhdg/dL7SKWtq/8C9z//DN7auRn3P/8M6uq/ILXd+qX3oTS7IOS8USr6wPzlpEvXD/buDPjbHzweDw/MXx5y3igTjZPFYPm0BaTTpyYkB/wdiOXTFiBOFhM84TAoE10xfQGkYknwhNdZt/gepMQ7B4BJiU/EusX3BNniBlKxBCumk/9PBSisAlbll4aUfkLpGHz2wrs429KI2uJKCEOMlQj1eJSJ5qT6H89vJFe6ruH8tRtzL3UP9OG2CTNJVQ/DOR5ApWgK+QO/vOWvOHHZM0iRx+NhRQj3eCjHAyi8R1MSkkindTi8a51WW2ixEqEUXgCFogNq8rG2z97zWEgltC+U6tBiKygT7RogP8rx2MIyzKgaz9jxACpFldQP50zl8SgTvdTeTNWuaDkeZaI76/fCZDGTSvu3Tz/Cn7b/02PZWzs342+ffkRqe5PFjJ31e0PKH2WiWqMeu74id/DDF05CMeQ5eWqfagCHL5wktf2ur0JvU6K0Uv/hvl2kIlfy0nyPGehv+XAIgsCH+3aFnDfKm1KeuvMhPL4s/O9XgvHO7i14Y8f7IW9H+Yv3m3WbcaypgerdAnC2Hb1ZF940DJSLOggHfrLxFfQO+Z/AOBx6h5T4ycZXwm4NpKVxbEirxpoXv0fZmT3W1IA1L34v+loBAafshtd+gXd2bwk7tI4gCLyzews2vPaLiCQBrqX+BlSIuvDV95KSkIQB9RA7+l6igVum25ATZRucKNvgRNkGJ8o2OFG2wYmyDU6UbXCibIMTZRujHpjMqsYxV3Pn8mnkYpFuuuZOLjA5RG76wGStQY/m7jao9NqA6agITKa8MAoWmDyk0+CjfTux/cgejx63kux8TCobh9Xz7kBxVr7Xdq7A5A2v/SKsy5jRjuCzLY344d9eQr/Kf4yQXCLDi+t/gLnVU3yuj4qO4ECByc3dbdjw+i8CSgKAwWzEd9983m/8blQHJhMEge+++TyMZu/xx/LTsyHg873S/+HfG9Gp7PVKH9WByTweDzXFlR7L7p93Bz5/8T1s/9Vb2Pe7f+Hbdz3isd7msOOTI3t87i+qA5NfWPd9/Oj+b0AoEGL1/OX46QNPIi3RGbgYK4vBY0vu9SqEWns6fO4r6gOTH1ywAnfOWIQYqcxrXXtfN9oUnR7LslP8z0Ua9YHJIyUJgsC2I//FHz/e5DVz7MTSsREfz8WoBCa76FIq8Nym3+NsS6PXukll4zB73GTKjkeZaKiBwoNaFZ587X98lqyTy8fhD998DiKh/+yFEggNUCiqVA8iI4TPtP7v0OdekrFSOb53zzrcPWtx0JeAUAKhAQpFuwYUIYl+1eg5VrVQIMQ/f/J7FGb4nv7a1/FCgTpRpSJg4TGSiaXjPOLop1WOJy3pOl4oUCZ6qb0ZK6cvJJ1+w8o1YX9Q5zpeKIxKYDLgfKwcvnASz2/+Cw5fOBlSdFk4gcmUnVFXYPI9c5aSSv+7re9g8946AMDHBz/DmgUr8cP7nyC17U0TmGwwG7H9qGc9dvvRPTAMG/zbH+EGJlMq2tzdho2fbaVyl15s/GxrWA1moxKYLJfIsGrGbR7LVs24DXKJdx14OJEEJtPSOOZqMwr0nTdBEDhy8RT2nv0KC2qnYeaYiQErCb1DyohidrlWwEi5JQOTS7Lz8eD8FVxgMmv6XqKBW6bbMPiA/AFefm8WYqXy4KKp8aG9yUcjKQlJwUVTWCCaGk9CtCKvmIm80EphZm5w0QW105jIC60sqJ0WXHRKeQ1ipTfvxBkxUhmmVtQEFxWLRLh37jIm8kQL9829AyKhiNxzdP3S+5AYS918vUyRGBuPx5c5uzFJicbK5PjNumejbhTzQPB4PLz42A8Qc/22I10zmjlmIp5e9TBtGaOa79/zGKYPG9QipCrgY0vuxV0zb6c8U1Rzz5yl+PqiVR7LglbqffGPPdvw6sebKMsYlfx49TfwwPwVXsvDEgWAL88cxUsfvR00JoEpslPS8f1712Ph+Bk+14ct6mLH0S+weW8dmjpaItlN2FTkFeOB+cuD3lIRi7oY0qpx8PwJXGi7gqvd7bhKIlAqVBJj4lCclY/SnAKMLSjDnHGTSQdZUSYa7fw/0QdJud+mxq8AAAAASUVORK5CYII=" />
@@ -3408,7 +3193,7 @@ strm),this.onEnd(f),this.ended=!0,f===o.Z_OK):c===o.Z_SYNC_FLUSH?(this.onEnd(o.Z
 </script>
 
         <script type="text/javascript">
-var compressedModel = "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";
+var compressedModel = "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";
 </script>
 
         <script type="text/javascript">
@@ -3926,8 +3711,6 @@ class N2TreeNode {
             }[c];
         })
     }
-
-    toId() { return N2TreeNode.absPathToId(this.absPathName); }
 }
 
 </script>
@@ -5166,7 +4949,6 @@ class N2WindowDraggable extends N2Window {
     /** Execute the base class constructor and set up drag event handler */
     constructor(newId = null, cloneId = null) {
         super(newId, cloneId);
-        this.boundaryMargin = 10;
         this._setupDrag();
     }
 
@@ -5176,74 +4958,45 @@ class N2WindowDraggable extends N2Window {
         super.close();
     }
 
-    _doDragHeader() { this._doDrag('.window-header'); }
-    _doDragFooter() { this._doDrag('.window-footer'); }
-
-    /** Prevent the window from being dragged off the left or right of the browser. */
-    _applyHorizontalBounds(testX) {
-        return (testX < this.boundaryMargin ?
-            this.boundaryMargin : 
-                    (testX > window.innerWidth - this.boundaryMargin?
-                        window.innerWidth - this.boundaryMargin : testX));
-    }
-
-    /** Prevent the window from being dragged off the top or bottom of the browser. */
-    _applyVerticalBounds(testY) {
-        return (testY < this.boundaryMargin ?
-            this.boundaryMargin : 
-                    (testY > window.innerHeight - this.boundaryMargin?
-                        window.innerHeight - this.boundaryMargin : testY));
-    }
-
-    /** 
-     * Perform the dragging operation on either header or footer. The start of the event
+    /**
+     * Listen for the event to begin dragging the window. The start of the event
      * also brings the window to the front.
      */
-    _doDrag(ribbonClass) {
-        const self = this;
-        const dragDiv = self.window;
-
-        self.bringToFront();
-        dragDiv.style('cursor', 'grabbing')
-            .select(ribbonClass).style('cursor', 'grabbing');
-
-        const dragStart = [d3.event.pageX, d3.event.pageY];
-        let newTrans = [0, 0];
-
-        const w = d3.select(window)
-            .on("mousemove", e => {
-                const x = self._applyHorizontalBounds(d3.event.pageX),
-                    y = self._applyVerticalBounds(d3.event.pageY);
-                newTrans = [x - dragStart[0], y - dragStart[1]];
-                dragDiv.style('transform', `translate(${newTrans[0]}px, ${newTrans[1]}px)`)
-            })
-            .on("mouseup", e => {
-                // Convert the translate to style position
-                self._setPos(self._getPos());
-
-                dragDiv.style('cursor', 'auto')
-                    .style('transform', null)
-                    .select(ribbonClass)
-                    .style('cursor', 'grab');
-
-                // Remove event listeners
-                w.on("mousemove", null).on("mouseup", null);
-            });
-
-        d3.event.preventDefault();
-    }
-
-    /** Listen for the mousedown event to begin dragging the window. */
     _setupDrag() {
         const self = this;
 
         this.header
-            .classed('window-draggable-ribbon', true)
-            .on('mousedown', self._doDragHeader.bind(self));
+            .classed('window-draggable-header', true)
+            .on('mousedown', function () {
+                const dragDiv = self.window;
 
-        this.footer
-            .classed('window-draggable-ribbon', true)
-            .on('mousedown', self._doDragFooter.bind(self));
+                self.bringToFront();
+                dragDiv.style('cursor', 'grabbing')
+                    .select('.window-header').style('cursor', 'grabbing');
+
+                const dragStart = [d3.event.pageX, d3.event.pageY];
+                let newTrans = [0, 0];
+
+                const w = d3.select(window)
+                    .on("mousemove", e => {
+                        newTrans = [d3.event.pageX - dragStart[0], d3.event.pageY - dragStart[1]];
+                        dragDiv.style('transform', `translate(${newTrans[0]}px, ${newTrans[1]}px)`)
+                    })
+                    .on("mouseup", e => {
+                        // Convert the translate to style position
+                        self._setPos(self._getPos());
+
+                        dragDiv.style('cursor', 'auto')
+                            .style('transform', null)
+                            .select('.window-header')
+                            .style('cursor', 'grab');
+
+                        // Remove event listeners
+                        w.on("mousemove", null).on("mouseup", null);
+                    });
+
+                d3.event.preventDefault();
+            });
     }
 }
 
@@ -10199,7 +9952,7 @@ class N2Diagram {
     }
 
     _createPartitionCells() {
-        const self = this; // For callbacks that change "this". Alternative to using .bind().
+        let self = this; // For callbacks that change "this". Alternative to using .bind().
 
         let selection = this.dom.pTreeGroup.selectAll(".partition_group")
             .data(this.layout.zoomedNodes, function (node) {
@@ -10221,18 +9974,12 @@ class N2Diagram {
                 else { self.ui.nodeInfoBox.pin(); } // Create a persistent panel
             })
             .on("contextmenu", function (d) {
-                if (d3.event.altKey) {
-                    const color = d3.select(this).select('rect').style('fill');
-                    self.ui.altRightClick(d, color);
-                }
-                else {
-                    self.ui.rightClick(d, this);
-                }
+                self.ui.rightClick(d, this);
             })
             .on("mouseover", function (d) {
                 self.ui.nodeInfoBox.update(d3.event, d, d3.select(this).select('rect').style('fill'));
             })
-            .on("mouseleave", function () {
+            .on("mouseleave", function (d) {
                 self.ui.nodeInfoBox.clear();
             })
             .on("mousemove", function () {
@@ -10769,10 +10516,6 @@ class N2Diagram {
         if (!hiddenList) return;
 
         const foundEntry = hiddenList.find(item => item.node === node);
-
-        // If variables were selectively hidden, force the variable selection
-        // dialog to rebuild the hiddenVars array.
-        if ('hiddenVars' in node) { delete node.hiddenVars; }
 
         if (!foundEntry) { // Not found, reset values to default
             node.isMinimized = false;
@@ -11455,30 +11198,6 @@ class PersistentNodeInfo extends N2WindowDraggable {
             ._setupCopyButtons()
             .showCloseButton()
             .show();
-
-        this.tooltipBox = d3.select(".tool-tip");
-        this.closeButton
-            .on("mouseover", this.mouseOver.bind(this))
-            .on("mouseleave", this.mouseLeave.bind(this))
-            .on("mousemove", this.mouseMove.bind(this));
-    }
-
-    /** When the mouse enters the element, show the tool tip */
-    mouseOver() {
-        this.tooltipBox
-            .text('Shift-click to close all.')
-            .style("visibility", "visible");
-    }
-
-    /** When the mouse leaves the element, hide the tool tip */
-    mouseLeave() {
-        this.tooltipBox.style("visibility", "hidden");
-    }
-
-    /** Keep the tool-tip near the mouse */
-    mouseMove() {
-        this.tooltipBox.style("top", (d3.event.pageY - 30) + "px")
-            .style("left", (d3.event.pageX + 5) + "px");
     }
 
     /** Set up event handlers for any "Show More" buttons in the panel */
@@ -11512,30 +11231,6 @@ class PersistentNodeInfo extends N2WindowDraggable {
         }
 
         return this;
-    }
-
-    /** Override so that shift-click closes all PersistentNodeInfo windows. */
-    close() {
-        this.tooltipBox.style("visibility", "hidden");
-        window.getSelection().empty(); // Shift-clicking also selects text, so unselect it
-
-        if (d3.event.shiftKey) {
-            const allPNIWin = d3.selectAll('[id^="persistentNodeInfo-"]');
-
-            allPNIWin.select('.window-close-button')
-                .on('click', null)
-                .on("mouseover", null)
-                .on("mouseleave", null)
-                .on("mousemove", null);
-            allPNIWin.remove();
-        }
-        else {
-            this.closeButton
-                .on("mouseover", null)
-                .on("mouseleave", null)
-                .on("mousemove", null);
-            super.close();
-        }
     }
 }
 
@@ -11744,7 +11439,7 @@ class N2UserInterface {
                         .on('mousemove', null)
                         .on('mouseup', null);
                 })
-                .on('mousemove', e => {
+                .on('input', e => {
                     const newHeight = d3.event.clientY - offset.y;
                     if (newHeight + n2Diag.layout.gapDist * 2 >= window.innerHeight * .5) {
                         newDims = {
@@ -11860,24 +11555,6 @@ class N2UserInterface {
             this.addBackButtonHistory();
             node.manuallyExpanded = false;
             this.collapse();
-        }
-    }
-
-    /**
-     * When a node with variables is alt-right-clicked, present a dialog with the
-     * list of variables and allow the user to select which ones should be displayed.
-     * @param {N2TreeNode} node The node that was alt-right-clicked.
-     * @param {String} color The color of the clicked node, to use for the dialog ribbons.
-     */
-    altRightClick(node, color) {
-        testThis(this, 'N2UserInterface', 'altRightClick');
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
-        window.getSelection().empty();
-
-        // Make sure node is collapsible and window doesn't exist yet.
-        if (this.isCollapsible(node) && d3.select('#childSelect-' + node.toId()).empty()) {
-            new ChildSelectDialog(node, color); // Create the modal dialog
         }
     }
 
@@ -12147,8 +11824,7 @@ class N2UserInterface {
         node.varIsHidden = false;
 
         if (node.hasChildren()) {
-            for (const child of node.children) {
-                if ('hiddenVars' in node && node.hiddenVars.indexOf(child) == -1)
+            for (let child of node.children) {
                 this._uncollapse(child);
             }
         }
@@ -12424,204 +12100,10 @@ class N2UserInterface {
     loadState() {
         document.getElementById('state-file-input').click();
     }
+
+
 }
 
-/**
- * Manage a window that allows the user to select which variables to display.
- * TODO: Make column headers sticky, improve autosizing
- * without using sizeToContent(3,30)
- * @typedef ChildSelectDialog
- */
-class ChildSelectDialog extends N2WindowDraggable {
-    /**
-     * Setup the basic structure of the variable selection dialog.
-     * @param {N2TreeNode} node The node to examine the variables of.
-     * @param {String} color The color to make the window header/footer ribbons.
-     */
-     constructor(node, color) {
-        super('childSelect-' + node.toId());
-        this.node = node;
-        this.nodeColor = color;
-        
-        // Don't do anything else if the node has no variables
-        if ( ! this._fetchVarNames() ) { this.close(); }
-        else { this._initialSetup(); }
-    }
-    
-    /**
-     * Find all the children of the node that are variables.
-     * @returns {Boolean} True if any variables were found, otherwise false.
-     */
-    _fetchVarNames() {
-        // Only add children that are variables.
-        let foundVariables = false;
-
-        this.varNames = {};
-        this.varNameArr = []; // For sorting purposes
-
-        for (const child of this.node.children) {
-            if (!child.isInputOrOutput()) { continue; }
-            foundVariables = true;
-
-            // Use N2Layout.getText() because Auto-IVC variable names are not usually descriptive.
-            const varName = n2Diag.layout.getText(child);
-            this.varNames[varName] = child;
-            this.varNameArr.push(varName)
-
-        }
-
-        return foundVariables;
-    }
-
-    /**
-     * Configure the window structure, then call repopulate() to list the variable names.
-     */
-    _initialSetup() {
-        const self = this;
-        if ('hiddenVars' in this.node) {
-            this.hiddenVars = this.node.hiddenVars;
-            this.existingHiddenVars = true;
-        }
-        else {
-            this.hiddenVars = [];
-            this.existingHiddenVars = false;
-        }
-
-        this.minWidth = 300;
-        this.minHeight = 100;
-        this.theme('child-select');
-        
-        this.title(this.node.name);
-        this.tableContainer = this.body.append('div').attr('class', 'table-container');
-        this.table = this.tableContainer.append('table');
-        const UA = navigator.userAgent;
-        if (/Chrom/.test(UA)) {
-            // Chrome puts the scrollbar outside the element, other browsers inside
-            this.table.style('margin-right', '0');
-        }
-
-        this.thead = this.table.append('thead');
-        this.tbody = this.table.append('tbody');
-
-        this.buttonContainer = this.body.append('div').attr('class', 'button-container');
-
-        this.ribbonColor(this.nodeColor);
-
-        const topRow = this.thead.append('tr');
-        const childName = topRow.append('th');
-        childName.append('span')
-            .attr('class', 'sort-up')
-            .html('&#9650;') // Up-arrow
-            .on('click', e => {
-                self.varNameArr.sort();
-                self.repopulate();
-            })
-        childName.append('span').text('Child Name');
-        childName.append('span')
-            .attr('class', 'sort-down')
-            .html('&#9660;') // Down-arrow
-            .on('click', e => {
-                self.varNameArr.sort();
-                self.varNameArr.reverse();
-                self.repopulate();
-            })
-        topRow.append('th').text('Visible');
-
-        // The Select All button makes all variables visible.
-        this.buttonContainer.append('button')
-            .on('click', e => {
-                d3.selectAll('.window-theme-child-select input[type="checkbox"]')
-                    .property('checked', true);
-                this.hiddenVars = [];
-            })
-            .text('Select All');
-
-        // The Select None button hides all variables.
-        this.buttonContainer.append('button')
-            .on('click', e => {
-                d3.selectAll('.window-theme-child-select input[type="checkbox"]')
-                    .property('checked', false);
-                this.hiddenVars = [];
-                for (const child of self.node.children) {
-                    this.hiddenVars.push(child);
-                }
-            })
-            .text('Select None');
-
-        // Hitting Apply closes the dialog and updates the diagram.
-        this.buttonContainer.append('button')
-            .on('click', e => {
-                if (self.hiddenVars.length == self.node.children.length ) {
-                    // If every variable was hidden, just collapse the node if it's expanded
-                    if (! self.node.isMinimized) { n2Diag.ui.rightClick(self.node); }
-                }
-                else {
-                    n2Diag.ui.rightClickedNode = self.node;
-                    n2Diag.ui.addBackButtonHistory();
-                    self.node.hiddenVars = self.hiddenVars;
-                    
-                    if (self.node.isMinimized) {
-                        // If node itself is collapsed, expand it
-                        self.node.manuallyExpanded = true;
-                        self.node.expand();
-                        self.node.varIsHidden = false;
-                    }
-                    for (const child of self.node.children) {
-                        // Need to check every child because some may be newly visible
-                        child.varIsHidden = (self.hiddenVars.indexOf(child) >= 0);
-                    }
-                    n2Diag.update();
-                }
-                self.close();
-            })
-            .text('Apply');
-        
-        this.repopulate()
-            .sizeToContent(3,30)
-            .modal(true)
-            .moveNearMouse(d3.event)
-            .show();
-    }
-
-    /**
-     * Add all the variables, their display status, and the control buttons.
-     */
-    repopulate() {
-        const self = this;
-        this.tbody.html('');
-
-        let isEven = true;
-        for (const varName of this.varNameArr) {
-            const child = this.varNames[varName];
-
-            // Alternate row colors:
-            const row = this.tbody.append('tr').attr('class', isEven? 'even' : 'odd');
-            isEven = !isEven;
-
-            row.append('td').text(varName);
-            const checkId = `${child.toId()}-visible-check`;
-            if (child.varIsHidden && ! this.existingHiddenVars) { this.hiddenVars.push(child); }
-
-            // Add a checkbox. When checked, the variable will be displayed.
-            row.append('td')
-                .append('input')
-                .attr('type', 'checkbox')
-                .property('checked', !child.varIsHidden)
-                .attr('id', checkId)
-                .on('change', e => {
-                    const isVisible = d3.select(`#${checkId}`).property('checked');
-                    if (!isVisible) { this.hiddenVars.push(child); }
-                    else { 
-                        const idx = this.hiddenVars.indexOf(child);
-                        if (idx > -1 ) { this.hiddenVars.splice(idx, 1); }
-                        else { console.warning("Could not find child in hiddenVars array."); }
-                    }
-                })
-        }
-
-        return this;
-    }
-}
 </script>
      <script type="text/javascript">
 // Constants and default valus

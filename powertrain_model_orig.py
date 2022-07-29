@@ -1,5 +1,5 @@
 import numpy as np 
-from csdl import Model, GraphRepresentation
+from csdl import Model
 import csdl
 from csdl_om import Simulator
 
@@ -57,6 +57,12 @@ class SimplePowertrainModel(Model):
         num_nodes = self.parameters['num_nodes']
         num_branches = self.parameters['num_branches']
 
+        for i in range(num_branches):
+            self.add(
+                PowertrainOutputBranchModel(instance=i+1, num_nodes=num_nodes),
+                'powertrain_output_branch_model_{}'.format(i+1)
+            )
+
         parallel_branch_power = self.create_output(
             'parallel_branch_power',
             shape = (num_branches, num_nodes)
@@ -68,11 +74,6 @@ class SimplePowertrainModel(Model):
         )
 
         for i in range(num_branches):
-            self.add(
-                PowertrainOutputBranchModel(instance=i+1, num_nodes=num_nodes),
-                'powertrain_output_branch_model_{}'.format(i+1)
-            )
-
             temp_power = self.declare_variable('acdc_input_power_{}'.format(i+1), shape=(num_nodes,))
             temp_current = self.declare_variable('acdc_input_current_{}'.format(i+1), shape=(num_nodes,))
 
@@ -118,8 +119,7 @@ if __name__ == '__main__':
         num_branches=5
     )
 
-    rep = GraphRepresentation(m)
-    sim = Simulator(rep)
+    sim = Simulator(m)
 
     sim.visualize_implementation()
     print(sim['parallel_branch_power'])

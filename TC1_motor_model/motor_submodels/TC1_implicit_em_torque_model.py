@@ -80,6 +80,9 @@ class EMTorqueImplicitModel(Model):
 
         Iq_fw = self.declare_variable('Iq_fw', shape=(num_nodes,))
         Iq_MTPA = self.declare_variable('Iq_MTPA', shape=(num_nodes,)) # CHECK NAMING SCHEME FOR VARIABLE
+
+        self.register_output('Iq_fw_dummy', Iq_fw * 1)
+        self.register_output('Iq_MTPA_dummy', Iq_MTPA * 1) # CHECK NAMING SCHEME FOR VARIABLE
                     
         k = 1 # ASK SHUOFENG WHAT THIS IS
         I_q = (csdl.exp(k*(U_rated - V_lim))*Iq_fw + Iq_MTPA) / (csdl.exp(k*(U_rated - V_lim)) + 1.0)
@@ -180,7 +183,7 @@ class EMTorqueModel(Model):
 
         implicit_torque_operation.nonlinear_solver = NewtonSolver(
             solve_subsystems=True,
-            maxiter=10,
+            maxiter=100,
             iprint=True,
         )
         implicit_torque_operation.linear_solver = ScipyKrylov()
@@ -196,10 +199,16 @@ class EMTorqueModel(Model):
         B_delta = self.declare_variable('B_delta')
         D_i = self.declare_variable('D_i')
 
-        T_em, efficiency, input_power, current_amplitude, output_power = implicit_torque_operation(
+        # T_em, efficiency, input_power, current_amplitude, output_power = implicit_torque_operation(
+        #     load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
+        #     PsiF_expanded, I_q_rated, B_delta, D_i,
+        #     expose=['efficiency', 'input_power', 'current_amplitude', 'output_power']
+        # )
+
+        T_em, efficiency, input_power, current_amplitude, output_power, Iq_fw_dummy, Iq_MTPA_dummy = implicit_torque_operation(
             load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
             PsiF_expanded, I_q_rated, B_delta, D_i,
-            expose=['efficiency', 'input_power', 'current_amplitude', 'output_power']
+            expose=['efficiency', 'input_power', 'current_amplitude', 'output_power', 'Iq_fw_dummy', 'Iq_MTPA_dummy']
         )
         
 if __name__ == '__main__':

@@ -25,7 +25,7 @@ class FluxWeakeningBracketModel(Model):
         d_bracket = bracket_implicit_model.declare_variable('d_bracket', shape=(num_nodes, ))
         e_bracket = bracket_implicit_model.declare_variable('e_bracket', shape=(num_nodes, ))
 
-        Iq_fw_bracket = bracket_implicit_model.declare_variable('I_q_fw_bracket', shape=(num_nodes, )) # STATE
+        Iq_fw_bracket = bracket_implicit_model.declare_variable('Iq_fw_bracket', shape=(num_nodes, )) # STATE
         Iq_fw_bracket_res = bracket_implicit_model.register_output(
             'Iq_fw_bracket_res',
             a_bracket/e_bracket*Iq_fw_bracket**4 + c_bracket/e_bracket*Iq_fw_bracket**2 + \
@@ -35,7 +35,7 @@ class FluxWeakeningBracketModel(Model):
 
         Iq_fw_bracket_implicit_op = self.create_implicit_operation(bracket_implicit_model)
         Iq_fw_bracket_implicit_op.declare_state(
-            'I_q_fw_bracket',
+            'Iq_fw_bracket',
             residual='Iq_fw_bracket_res'
         )
         Iq_fw_bracket_implicit_op.nonlinear_solver = NewtonSolver(
@@ -212,7 +212,7 @@ class FluxWeakeningImplicitModel(Model):
         )
         solve_flux_weakening.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
-            maxiter=100,
+            maxiter=1000,
             iprint=True,
         )
         solve_flux_weakening.linear_solver = ScipyKrylov()

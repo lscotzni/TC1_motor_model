@@ -37,27 +37,9 @@ add AllowableOperatingconditions as needed
 
 =========================================================================================
 # TO-DO:
-models to work on:
-  - flux weakening (do analytical method)
-
-do a full verification of the motor models
-  - sizing: *DONE*
-  - analysis:
-    - magnet MEC: *DONE*
-    - inductance MEC: *DONE*
-    - flux weakening: need to verify result
-    - MTPA: need to verify result
-    - post-processing: need to verify
 
 fix permeability fitting for B = f(H) *DONE* and write as a class
 
-mass-torque fitting: get coefficients and plug into CSDL model
-
-FIX phi_m CALCULATION ACCORDING TO MATLAB CODE
-
 POWERTRAIN MODEL:
 - ask about the input phase current and how it's different from Id and Iq in the motor model
-- calculate the voltage components using the MATLAB code as reference
-- how much freedom is given to the user?
-  - branches for battery & DC/DC converter before the bus
-  - is there going to be an option with multiple motors on the rotors?
+  - USE THE CURRENT COMPONENTS FOR POST-PROCESSING CALCULATIONS

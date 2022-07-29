@@ -61,6 +61,12 @@ class Powertrain(BaseClass):
         self.acdc_converter_nodes = []
         self.motor_nodes = []
 
+        self.battery_names = []
+        self.dcdc_converter_names = []
+        self.dc_bus_names = []
+        self.acdc_converter_names = []
+        self.motor_names = []
+
         self.powertrain_connections = []
 
     def add_input_branch(self, dcbus, components=[]): # IGNORE FOR NOW
@@ -81,21 +87,26 @@ class Powertrain(BaseClass):
         if isinstance(node, BatteryFeature):
             if node not in self.battery_nodes:
                 self.battery_nodes.append(node)
+                self.battery_names.append(node.parameters['name'])
 
         elif isinstance(node, DCBusFeature):
             if node not in self.dc_bus_nodes:
                 self.dc_bus_nodes.append(node)
+                self.dc_bus_names.append(node.parameters['name'])
 
         elif isinstance(node, MotorFeature):
             if node not in self.motor_nodes:
                 self.motor_nodes.append(node)
+                self.motor_names.append(node.parameters['name'])
 
         elif isinstance(node, ConverterFeature):
             if node not in self.dcdc_converter_nodes and node not in self.acdc_converter_nodes:
                 if node.parameters['type'] == 'ac-dc':
                     self.acdc_converter_nodes.append(node)
+                    self.acdc_converter_names.append(node.parameters['name'])
                 elif node.parameters['type'] == 'dc-dc':
                     self.dcdc_converter_nodes.append(node)
+                    self.dcdc_converter_names.append(node.parameters['name'])
 
     def connect_nodes(self, start=[], stop=[]):
         # ALWAYS UPSTREAM TO DOWNSTREAM
@@ -109,14 +120,23 @@ class Powertrain(BaseClass):
             self.add_node(node)
         
         for i in range(connections):
-            self.powertrain_connections.append([start[i], stop[i]])
+            self.powertrain_connections.append([
+                start[i].parameters['name'], 
+                stop[i].parameters['name']
+                ]
+            )
 
     def finalize(self):
-        # self.num_batteries = len(self.battery_nodes)
+        self.num_motors = len(self.motor_nodes)
+        self.num_dcdc = len(self.dcdc_converter_nodes)
+        self.num_dc_bus = len(self.dc_bus_nodes)
+        self.num_acdc = len(self.acdc_converter_nodes)
+        self.num_batteries = len(self.battery_nodes)
 
         # ''' ... '''
         
-        powertrain_model = SimplePowertrainModel()
+        powertrain_model = SimplePowertrainModel(
+        )
         return powertrain_model, connections
 
 
@@ -133,7 +153,7 @@ if __name__ == '__main__':
                         'acdc_converter_ps7', 'acdc_converter_ps8', 'acdc_converter_ps9']
     dcbus_pointsets = ['dcbus_ps1', 'dcbus_ps2']
 
-    P = Powertrain()
+    # P = Powertrain()
 
     B1 = BatteryFeature(
         name='battery_1',
@@ -161,15 +181,15 @@ if __name__ == '__main__':
         pointset=dcbus_pointsets[1]
     )
 
-    P.add_input_branch(
-        dcbus=DB1,
-        components=[B1,DD1]
-    )
+    # P.add_input_branch(
+    #     dcbus=DB1,
+    #     components=[B1,DD1]
+    # )
 
-    P.add_input_branch(
-        dcbus=DB1,
-        components=[B1,DD1]
-    )
+    # P.add_input_branch(
+    #     dcbus=DB1,
+    #     components=[B1,DD1]
+    # )
 
 
     # P.add_node(B1)

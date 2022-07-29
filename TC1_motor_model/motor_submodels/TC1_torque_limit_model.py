@@ -32,9 +32,9 @@ class MaxTorqueModel(Model):
         D = self.declare_variable('D_quartic', shape=(num_nodes,))
         E = self.declare_variable('E_quartic', shape=(num_nodes,))
 
-        bracket_lower = self.declare_variable('max_cubic_root', shape=(num_nodes,))
-        bracket_upper = self.declare_variable('upper_quartic_bracket', shape=(num_nodes,))
-        self.register_output('dummy_output', bracket_upper/bracket_lower) # HERE TO CREATE PROPER ORDER OF OPERATIONS
+        lower_bracket = self.declare_variable('lower_bracket', shape=(num_nodes,))
+        upper_bracket = self.declare_variable('upper_bracket', shape=(num_nodes,))
+        self.register_output('dummy_output', upper_bracket + lower_bracket) # HERE TO CREATE PROPER ORDER OF OPERATIONS
         # bracket_lower = self.declare_variable('bracket_lower', 1600)
         # bracket_upper = self.declare_variable('bracket_upper', 2000)
 
@@ -57,12 +57,12 @@ class MaxTorqueModel(Model):
         max_torque_implicit_op.declare_state(
             'T_lim',
             residual='T_lim_residual',
-            bracket=(bracket_lower, bracket_upper)
+            bracket=(lower_bracket, upper_bracket)
             # bracket=(1600,2000)
         )
         max_torque_implicit_op.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
-            maxiter=10000,
+            maxiter=1000,
             iprint=True
         )
         max_torque_implicit_op.linear_solver = ScipyKrylov()
@@ -119,49 +119,177 @@ class TorqueLimitModel(Model):
         D = self.register_output('D_quartic', 64*e*c_1*c_2**3 - 12*d**2*c_1*c_2**2)
         E = self.register_output('E_quartic', 16*e*c_2**4 - 4*d**2*c_2**3)
 
+        lower_bracket, upper_bracket = csdl.custom(A, B, C, D, E, op = DiscreteCheck(num_nodes = num_nodes))
+
+        self.register_output('lower_bracket', lower_bracket)
+        self.register_output('upper_bracket', upper_bracket)
+
         # DERIVATIVE OF ZERO DISCRIMINANT QUARTIC TORQUE EQ TO GET BRACKETS
-        a_cubic = 3*B/(4*A)
-        b_cubic = 2*C/(4*A)
-        c_cubic = D/(4*A)
+        # a_cubic = 3*B/(4*A)
+        # b_cubic = 2*C/(4*A)
+        # c_cubic = D/(4*A)
 
-        P1 = (a_cubic**2 - 3*b_cubic)/9 # Q IN NOTES
-        P2 = (2*a_cubic**3 - 9*a_cubic*b_cubic + 27*c_cubic)/54 # R IN NOTES
-        theta = csdl.arccos(P2/(P1**3)**(1/2))
+        # P1 = (a_cubic**2 - 3*b_cubic)/9 # Q IN NOTES
+        # P2 = (2*a_cubic**3 - 9*a_cubic*b_cubic + 27*c_cubic)/54 # R IN NOTES
+        # theta = csdl.arccos(P2/(P1**3)**(1/2))
 
-        # asdf = self.create_output('test_out', shape=(6,))
-        # asdf[0] = a_cubic
-        # asdf[1] = b_cubic
-        # asdf[2] = c_cubic
-        # asdf[3] = P1
-        # asdf[4] = P2
-        # asdf[5] = theta
+        # # asdf = self.create_output('test_out', shape=(6,))
+        # # asdf[0] = a_cubic
+        # # asdf[1] = b_cubic
+        # # asdf[2] = c_cubic
+        # # asdf[3] = P1
+        # # asdf[4] = P2
+        # # asdf[5] = theta
 
-        # NEED TO FIX SHAPES HERE
-        root1 = -1 * (2*(P1)**0.5*csdl.cos(theta/3)) - a_cubic/3
-        root2 = -1 * (2*(P1)**0.5*csdl.cos((theta+2*np.pi)/3)) - a_cubic/3
-        root3 = -1 * (2*(P1)**0.5*csdl.cos((theta-2*np.pi)/3)) - a_cubic/3
+        # # NEED TO FIX SHAPES HERE
+        # root1 = -1 * (2*(P1)**0.5*csdl.cos(theta/3)) - a_cubic/3
+        # root2 = -1 * (2*(P1)**0.5*csdl.cos((theta+2*np.pi)/3)) - a_cubic/3
+        # root3 = -1 * (2*(P1)**0.5*csdl.cos((theta-2*np.pi)/3)) - a_cubic/3
 
-        cubic_roots = self.create_output('cubic_roots', shape=(num_nodes, 3))
-        cubic_roots[:, 0] = csdl.reshape(root1, (num_nodes, 1))
-        cubic_roots[:, 1] = csdl.reshape(root2, (num_nodes, 1))
-        cubic_roots[:, 2] = csdl.reshape(root3, (num_nodes, 1))
+        # cubic_roots = self.create_output('cubic_roots', shape=(num_nodes, 3))
+        # cubic_roots[:, 0] = csdl.reshape(root1, (num_nodes, 1))
+        # cubic_roots[:, 1] = csdl.reshape(root2, (num_nodes, 1))
+        # cubic_roots[:, 2] = csdl.reshape(root3, (num_nodes, 1))
 
-        # cubic_roots[:, 0] = root1[:]
-        # cubic_roots[:, 1] = root2[:]
-        # cubic_roots[:, 2] = root3[:]
+        # # cubic_roots[:, 0] = root1[:]
+        # # cubic_roots[:, 1] = root2[:]
+        # # cubic_roots[:, 2] = root3[:]
 
-        max_cubic_root = csdl.max(cubic_roots)
-        max_cubic_root = self.register_output(
-            'max_cubic_root',
-            csdl.max(cubic_roots, axis=1) # LOWER END OF BRACKET FOR QUARTIC EQUATION
-        )
-        upper_quartic_bracket = max_cubic_root * 10.0
-        upper_quartic_bracket = self.register_output(
-            'upper_quartic_bracket',
-            upper_quartic_bracket
-        )
+        # max_cubic_root = csdl.max(cubic_roots)
+        # max_cubic_root = self.register_output(
+        #     'max_cubic_root',
+        #     csdl.max(cubic_roots, axis=1) # LOWER END OF BRACKET FOR QUARTIC EQUATION
+        # )
+        # upper_quartic_bracket = max_cubic_root * 10.0
+        # upper_quartic_bracket = self.register_output(
+        #     'upper_quartic_bracket',
+        #     upper_quartic_bracket
+        # )
 
         self.add(MaxTorqueModel(num_nodes=num_nodes), 'max_torque_model')
+
+
+class DiscreteCheck(csdl.CustomExplicitOperation):
+
+    def initialize(self):
+        self.parameters.declare('num_nodes')
+
+    def define(self):
+
+        self.num_nodes = self.parameters['num_nodes']
+        self.add_input('A_quartic', shape = (self.num_nodes, ))
+        self.add_input('B_quartic', shape = (self.num_nodes, ))        
+        self.add_input('C_quartic', shape = (self.num_nodes, ))       
+        self.add_input('D_quartic', shape = (self.num_nodes, ))
+        self.add_input('E_quartic', shape = (self.num_nodes, ))
+
+        self.add_output('lower_bracket', shape = (self.num_nodes, ))
+        self.add_output('upper_bracket', shape = (self.num_nodes, ))
+
+    def evaluate_residual(self, x, A, B, C, D, E):
+        res = A*x**4 + B*x**3 + C*x**2 + D*x + E
+        return res
+
+    def compute(self, inputs, outputs):
+
+        A = inputs['A_quartic']
+        B = inputs['B_quartic']
+        C = inputs['C_quartic']
+        D = inputs['D_quartic']
+        E = inputs['E_quartic']
+
+        a = 4*A
+        b = 3*B
+        c = 2*C
+        d = D
+
+        t_shift = b/(3*a)
+        p = (3*a*c - b**2) / (3*a**2)
+        q = (2*b**3 - 9*a*b*c + 27*a**2*d) / (27*a**3)
+                
+        for i in range(self.num_nodes):
+            p_iter = p[i]
+            q_iter = q[i]
+            cond = 4*p_iter**3 + 27*q_iter**2 # THIS DETERMINES THE EXISTENCE OF VARIOUS ROOTS
+            print('p: ', p_iter, 'q: ', q_iter, 'cond: ', cond)
+
+            # IF CLAUSE TO COMPUTE LOWER BRACKET
+            if cond > 0:
+                # cardano_sol = (-q_iter/2 + (q_iter**2/4 + p_iter**3/27)**(1/2))**(1/3) + \
+                #     (-q_iter/2 - (q_iter**2/4 + p_iter**3/27)**(1/2))**(1/3)
+
+                cubic_arg_1 = -q_iter/2 + (q_iter**2/4 + p_iter**3/27)**(1/2)
+                cubic_arg_2 = -q_iter/2 - (q_iter**2/4 + p_iter**3/27)**(1/2)
+                print(cubic_arg_1)
+                print(cubic_arg_2)
+
+                cardano_sol = np.cbrt(cubic_arg_1) + np.cbrt(cubic_arg_2)
+
+                lower_bracket_val = cardano_sol - t_shift[i]
+
+            elif cond == 0:
+                t1 = 3*q_iter/p_iter
+                t2 = t3 = -3*q_iter/p_iter
+
+                lower_bracket_val = np.max(np.array([t1-t_shift[i], t2-t_shift[i], t3-t_shift[i]]))
+
+            elif cond < 0:
+                a_cubic = 3*B[i]/(4*A[i])
+                b_cubic = 2*C[i]/(4*A[i])
+                c_cubic = D[i]/(4*A[i])
+
+                P1 = (a_cubic**2 - 3*b_cubic)/9 # Q IN NOTES
+                P2 = (2*a_cubic**3 - 9*a_cubic*b_cubic + 27*c_cubic)/54 # R IN NOTES
+                theta = np.arccos(P2/(P1**3)**(1/2))
+
+                root1 = -1 * (2*(P1)**0.5*np.cos(theta/3)) - a_cubic/3
+                root2 = -1 * (2*(P1)**0.5*np.cos((theta+2*np.pi)/3)) - a_cubic/3
+                root3 = -1 * (2*(P1)**0.5*np.cos((theta-2*np.pi)/3)) - a_cubic/3
+
+                lower_bracket_val = np.max(np.array([root1, root2, root3]))
+
+            outputs['lower_bracket'][i] = lower_bracket_val 
+            print(lower_bracket_val)
+
+            # ITERATIVE METHOD TO FIND UPPER BRACKET
+            A_iter = A[i]
+            B_iter = B[i]
+            C_iter = C[i]
+            D_iter = D[i]
+            E_iter = E[i]
+            start = lower_bracket_val
+            res_start = self.evaluate_residual(start, A_iter, B_iter, C_iter, D_iter, E_iter)
+            res_start_sign = np.sign(res_start) # GIVES SIGN OF STARTING RESIDUAL
+            torque_step = 100
+            j = 0
+            while True:
+                j += 1
+                start = start + torque_step
+                res_loop = self.evaluate_residual(start, A_iter, B_iter, C_iter, D_iter, E_iter)
+                res_loop_sign = np.sign(res_loop)
+                if res_start_sign != res_loop_sign and res_loop_sign != 0:
+                    break
+
+                if j > 1000:
+                    KeyError('Method did not converge')
+            
+            outputs['upper_bracket'][i] = start
+            print(start)
+            print('---')
+
+        print(outputs['lower_bracket'])
+        print(outputs['upper_bracket'])
+
+        # exit()
+
+        # for i in range(self.num_nodes):
+
+        #     outputs['upper_bracket'][i] = ...
+
+
+
+
+
 
 if __name__ == '__main__':
     p = 6
