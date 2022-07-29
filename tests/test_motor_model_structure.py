@@ -109,14 +109,16 @@ if __name__ == '__main__':
     rated_current = 123
     num_nodes = 4 # dummy input
 
-    # D_i = 0.3723
-    # L = 0.2755
+    D_i = 0.3723
+    L = 0.2755
 
-    D_i = 0.182
-    L = 0.086
+    # D_i = 0.182
+    # L = 0.086
 
     # load_torque_rotor = 600
-    load_torque_rotor = 136.17287413
+    # load_torque_rotor = 136.17287413
+    # load_torque_rotor = 544. 
+    load_torque_rotor = np.array([136.17287413, 600])
     # em_torque_test_range = np.arange(20,100+1, 1) * 4
     em_torque_test_range = np.arange(20,100+1, 20) * 4
     model_test=False
@@ -144,7 +146,9 @@ if __name__ == '__main__':
     sim = Simulator(rep)
     sim['D_i'] = D_i
     sim['L'] = L
-    sim['omega_rotor'] = 2200
+    # sim['omega_rotor'] = 2200
+    # sim['omega_rotor'] = 200
+    sim['omega_rotor'] = np.array([2200, 200])
     sim['load_torque_rotor'] = load_torque_rotor
     if model_test:
         sim['T_em'] = em_torque_test_range

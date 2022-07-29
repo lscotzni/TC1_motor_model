@@ -156,6 +156,21 @@ class FluxWeakeningModel(Model):
             -PsiF_expanded/(L_d_expanded - L_q_expanded)
         ) # UPPER LIMIT OF I_d WHERE I_q ASYMPTOTES TO INFINITY
 
+        I_d_voltage_upper_lim = self.register_output(
+            'I_d_voltage_upper_lim',
+            (-omega**2*PsiF_expanded*L_d_expanded + (V_lim**2 * (omega**2*L_d_expanded**2 + R_expanded**2) - (R_expanded*omega*PsiF_expanded)**2)**(1/2)) \
+                / (2*(R_expanded**2 + (omega*L_d_expanded)**2))
+        )
+
+        I_d_upper_bracket_list = self.create_output('I_d_upper_bracket_list', shape=(num_nodes,2))
+        I_d_upper_bracket_list[:,0] = csdl.reshape(I_d_asymp, (num_nodes,1))
+        I_d_upper_bracket_list[:,1] = csdl.reshape(I_d_voltage_upper_lim, (num_nodes,1))
+
+        Id_upper_lim = self.register_output(
+            'Id_upper_lim',
+            csdl.min(I_d_upper_bracket_list, axis=1)
+        )
+
         
         ''' --- START IMPLICIT MODEL FOR FLUX WEAKENING --- '''
         self.add(
@@ -183,6 +198,7 @@ class FluxWeakeningImplicitModel(Model):
         T_em = self.declare_variable('T_em', shape=(num_nodes,))
 
         I_d_asymp =  self.declare_variable('I_d_asymp', shape=(num_nodes,))
+        Id_upper_lim = self.declare_variable('Id_upper_lim', shape=(num_nodes,))
         Id_fw_bracket_low = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
 
         self.register_output('dummy_out_FW', Id_fw_bracket_low/I_d_asymp)
@@ -207,7 +223,8 @@ class FluxWeakeningImplicitModel(Model):
         solve_flux_weakening = self.create_implicit_operation(model)
         solve_flux_weakening.declare_state('Id_fw', 
             residual='Id_fw_residual', 
-            bracket=(Id_fw_bracket_low, I_d_asymp),
+            # bracket=(Id_fw_bracket_low, I_d_asymp),
+            bracket=(Id_fw_bracket_low, Id_upper_lim),
             # bracket=(-587.9010, 13.90909091)
         )
         solve_flux_weakening.nonlinear_solver = NewtonSolver(
