@@ -94,7 +94,7 @@ class EMTorqueImplicitModel(Model):
         ''' POWER LOSS CALCULATIONS '''
         # load power
         # eq of the form P0 = speed * torque
-        P0 = load_torque * omega
+        P0 = load_torque * omega * 2*np.pi/60
         self.register_output('output_power', P0)
         frequency = omega*p/60
 
