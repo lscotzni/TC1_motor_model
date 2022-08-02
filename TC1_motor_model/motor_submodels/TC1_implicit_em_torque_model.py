@@ -232,17 +232,23 @@ class EMTorqueModel(Model):
         B_delta = self.declare_variable('B_delta')
         D_i = self.declare_variable('D_i')
 
-        T_em, current_amplitude, output_power, input_power_active, efficiency_active = implicit_torque_operation(
-            load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
-            PsiF_expanded, I_q_rated, B_delta, D_i,
-            expose=['current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
-        )
+        # T_em, current_amplitude, output_power, input_power_active, efficiency_active = implicit_torque_operation(
+        #     load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
+        #     PsiF_expanded, I_q_rated, B_delta, D_i,
+        #     expose=['current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
+        # )
 
         # T_em, efficiency_active, input_power_active, current_amplitude, output_power, Iq_fw_dummy, Iq_MTPA_dummy = implicit_torque_operation(
         #     load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
         #     PsiF_expanded, I_q_rated, B_delta, D_i,
         #     expose=['efficiency_active', 'input_power_active', 'current_amplitude', 'output_power', 'Iq_fw_dummy', 'Iq_MTPA_dummy']
         # )
+
+        T_em, Iq_fw_dummy, Iq_MTPA_dummy,current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
+            load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
+            PsiF_expanded, I_q_rated, B_delta, D_i,
+            expose=['Iq_fw_dummy', 'Iq_MTPA_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
+        )
         
 
 if __name__ == '__main__':
