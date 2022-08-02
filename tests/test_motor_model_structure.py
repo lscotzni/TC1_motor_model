@@ -4,7 +4,6 @@ from csdl_om import Simulator
 from python_csdl_backend import Simulator
 from csdl import Model, GraphRepresentation
 import csdl
-from traitlets import default
 
 from TC1_motor_model.TC1_motor_sizing_model import TC1MotorSizingModel
 from TC1_motor_model.TC1_motor_analysis_model import TC1MotorAnalysisModel
@@ -27,6 +26,7 @@ class TC1MotorModel(Model):
         self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
         self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
         self.parameters.declare('num_nodes')
+        self.parameters.declare('num_active_nodes')
         self.parameters.declare('model_test', default=False)
 
     def define(self):
@@ -40,6 +40,7 @@ class TC1MotorModel(Model):
         fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
         num_nodes = self.parameters['num_nodes']
+        num_active_nodes = self.parameters['num_active_nodes']
         model_test = self.parameters['model_test']
 
         D_i = self.declare_variable('D_i') # inner radius of stator
@@ -76,6 +77,7 @@ class TC1MotorModel(Model):
                 fit_coeff_dep_H=fit_coeff_dep_H,
                 fit_coeff_dep_B=fit_coeff_dep_B,
                 num_nodes=num_nodes,
+                num_active_nodes=num_active_nodes,
                 model_test=model_test
             ),
             'TC1_motor_analysis_model',
@@ -118,14 +120,15 @@ if __name__ == '__main__':
     # load_torque_rotor = 600
     # load_torque_rotor = 136.17287413
     # load_torque_rotor = 544. 
-    load_torque_rotor = np.array([136.17287413, 600])
+    load_torque_rotor = np.array([136.17287413, 0, 600, 0])
+    omega_rotor = np.array([2200, 0, 200, 0])
     # em_torque_test_range = np.arange(20,100+1, 1) * 4
     em_torque_test_range = np.arange(20,100+1, 20) * 4
     model_test=False
     if model_test:
         num_nodes=len(em_torque_test_range)
     else:
-        num_nodes=2
+        num_nodes=len(load_torque_rotor)
 
 
     m = TC1MotorModel(
@@ -138,6 +141,7 @@ if __name__ == '__main__':
         fit_coeff_dep_H=fit_coeff_dep_H,
         fit_coeff_dep_B=fit_coeff_dep_B,
         num_nodes=num_nodes,
+        num_active_nodes=2,
         model_test=model_test,
         
     )
@@ -148,7 +152,7 @@ if __name__ == '__main__':
     sim['L'] = L
     # sim['omega_rotor'] = 2200
     # sim['omega_rotor'] = 200
-    sim['omega_rotor'] = np.array([2200, 200])
+    sim['omega_rotor'] = omega_rotor
     sim['load_torque_rotor'] = load_torque_rotor
     if model_test:
         sim['T_em'] = em_torque_test_range
@@ -226,12 +230,12 @@ if __name__ == '__main__':
     # print('Voltage Amplitude: ', sim['voltage_amplitude'])
     output_power = sim['output_power']
     input_power = sim['input_power']
-    efficiency = sim['efficiency']
+    efficiency = sim['efficiency_active']
     load_torque = sim['load_torque']
     residual = em_torque*efficiency - load_torque
     print('Output Power: ', sim['output_power'])
     print('Input Power: ', sim['input_power'])
-    print('Efficiency: ', sim['efficiency'])
+    print('Efficiency: ', sim['efficiency_active'])
     print('residual: ', residual)
     if not model_test:
         print('resultant EM Torque: ', sim['T_em'])

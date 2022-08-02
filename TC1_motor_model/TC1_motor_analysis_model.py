@@ -29,6 +29,52 @@ OUTPUTS:
     - EM torque (FEOC)
 '''
 
+class ParseActiveOperatingConditions(csdl.CustomExplicitOperation):
+    def initialize(self):
+        self.parameters.declare('num_nodes')
+        self.parameters.declare('num_active_nodes') # COMING FROM CADDEE
+        # self.parameters.declare('selection_matrix') # COMING FROM CADDEE
+
+    def define(self):
+
+        self.num_nodes = self.parameters['num_nodes']
+        self.num_active_nodes = self.parameters['num_active_nodes']
+
+        self.add_input('omega_rotor', shape=(self.num_nodes,))
+        self.add_input('load_torque_rotor', shape=(self.num_nodes,))
+
+        self.add_output('omega_rotor_active', shape=(self.num_active_nodes,))
+        self.add_output('load_torque_rotor_active', shape=(self.num_active_nodes,))
+        self.add_output('selection_indices', shape=(self.num_nodes,self.num_active_nodes))
+
+    def compute(self, inputs, outputs):
+
+        omega_rotor = inputs['omega_rotor']
+        load_torque_rotor = inputs['load_torque_rotor']
+
+        omega_rotor_active = []
+        load_torque_rotor_active = []
+        self.selection_indices = np.zeros((self.num_nodes, self.num_active_nodes))
+
+        active_counter = 0
+        for i in range(self.num_nodes):
+            if omega_rotor[i] != 0 and load_torque_rotor[i] != 0:
+                self.selection_indices[i, active_counter] = 1
+                omega_rotor_active.append(omega_rotor[i])
+                load_torque_rotor_active.append(load_torque_rotor[i])
+                active_counter += 1
+        
+        outputs['omega_rotor_active'] = np.array(omega_rotor_active)
+        outputs['load_torque_rotor_active'] = np.array(load_torque_rotor_active)
+        outputs['selection_indices'] = self.selection_indices
+
+        self.declare_derivatives('*', '*')
+        
+    def compute_derivatives(self, inputs, derivatives):
+        derivatives['omega_rotor_active', 'omega_rotor'] = np.transpose(self.selection_indices)
+        derivatives['load_torque_rotor_active', 'load_torque_rotor'] = np.transpose(self.selection_indices)
+
+
 class TC1MotorAnalysisModel(Model):
     def initialize(self, model_test=False):
         self.parameters.declare('pole_pairs') # 6
@@ -40,6 +86,7 @@ class TC1MotorAnalysisModel(Model):
         self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
         self.parameters.declare('fit_coeff_dep_B') # FITTING COEFFICIENTS (X = B, H = g(B))
         self.parameters.declare('num_nodes')
+        self.parameters.declare('num_active_nodes')
         self.parameters.declare('model_test', default=False)
 
         self.motor_variable_names = [
@@ -60,6 +107,7 @@ class TC1MotorAnalysisModel(Model):
         fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
         fit_coeff_dep_B = self.parameters['fit_coeff_dep_B']
         num_nodes = self.parameters['num_nodes']
+        num_active_nodes = self.parameters['num_active_nodes']
         model_test=self.parameters['model_test']
 
         # DECLARE VARIABLES FROM SIZING & UPSTREAM MODELS
@@ -69,14 +117,6 @@ class TC1MotorAnalysisModel(Model):
         motor_variables = self.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
         for i in range(motor_variables.shape[0]):
             self.register_output(self.motor_variable_names[i], motor_variables[i])
-
-        omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,))
-        load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,))
-
-        # gearbox (very simple, not sure if this should be done differently)
-        gear_ratio = 4.
-        omega = self.register_output('omega', omega_rotor * gear_ratio)
-        load_torque = self.register_output('load_torque', load_torque_rotor/gear_ratio)
 
         # ========================= MAGNET MEC =========================
         self.add(
@@ -105,20 +145,38 @@ class TC1MotorAnalysisModel(Model):
         W_1 = self.declare_variable('turns_per_phase')
         PsiF = self.register_output('PsiF', W_1 * phi_air)
 
-        R_expanded = self.register_output('R_expanded', csdl.expand(Rdc, (num_nodes,)))
-        L_d_expanded = self.register_output('L_d_expanded', csdl.expand(L_d, (num_nodes,)))
-        L_q_expanded = self.register_output('L_q_expanded', csdl.expand(L_q, (num_nodes,)))
-        PsiF_expanded = self.register_output('PsiF_expanded', csdl.expand(PsiF, (num_nodes,)))
+        # TORQUE AND RPM INPUT ADJUSTMENT
+        omega_rotor = self.declare_variable('omega_rotor', shape=(num_nodes,))
+        load_torque_rotor = self.declare_variable('load_torque_rotor', shape=(num_nodes,))
+
+        omega_rotor_active, load_torque_rotor_active, selection_indices = csdl.custom(
+            omega_rotor, load_torque_rotor,
+            op=ParseActiveOperatingConditions(num_nodes=num_nodes, num_active_nodes=num_active_nodes)
+        )
+
+        omega_rotor_active = self.register_output('omega_rotor_active', omega_rotor_active)
+        load_torque_rotor_active = self.register_output('load_torque_rotor_active', load_torque_rotor_active)
+
+        R_expanded = self.register_output('R_expanded', csdl.expand(Rdc, (num_active_nodes,)))
+        L_d_expanded = self.register_output('L_d_expanded', csdl.expand(L_d, (num_active_nodes,)))
+        L_q_expanded = self.register_output('L_q_expanded', csdl.expand(L_q, (num_active_nodes,)))
+        PsiF_expanded = self.register_output('PsiF_expanded', csdl.expand(PsiF, (num_active_nodes,)))
+
+        # gearbox (very simple, not sure if this should be done differently)
+        gear_ratio = 4.
+        omega = self.register_output('omega', omega_rotor_active * gear_ratio)
+        load_torque = self.register_output('load_torque', load_torque_rotor_active/gear_ratio)
+
         self.add(
                 TorqueLimitModel(
                     pole_pairs=p,
                     V_lim=V_lim,
-                    num_nodes=num_nodes
+                    num_nodes=num_active_nodes
                 ),
                 'torque_limit_model'
             )
-        T_lim = self.declare_variable('T_lim', shape=(num_nodes,))
-        T_lower_lim = self.declare_variable('T_lower_lim', val=0., shape=(num_nodes,))
+        T_lim = self.declare_variable('T_lim', shape=(num_active_nodes,))
+        T_lower_lim = self.declare_variable('T_lower_lim', val=0., shape=(num_active_nodes,))
         
         D = (3*p*(L_d_expanded-L_q_expanded))
 
@@ -144,13 +202,13 @@ class TC1MotorAnalysisModel(Model):
         self.add(
             FluxWeakeningBracketModel(
                 pole_pairs=p,
-                num_nodes=num_nodes
+                num_nodes=num_active_nodes
             ),
             'flux_weakening_bracket_method'
         )
 
-        self.declare_variable('Iq_fw_bracket', shape=(num_nodes, ))
-        self.declare_variable('Id_fw_bracket', shape=(num_nodes, ))
+        self.declare_variable('Iq_fw_bracket', shape=(num_active_nodes, ))
+        self.declare_variable('Id_fw_bracket', shape=(num_active_nodes, ))
 
         if True:
 
@@ -160,13 +218,21 @@ class TC1MotorAnalysisModel(Model):
                     EMTorqueModel(
                         pole_pairs=p,
                         V_lim=V_lim,
-                        num_nodes=num_nodes,
+                        num_nodes=num_active_nodes,
                         rated_current=rated_current,
                         phases=m,
                         motor_variable_names=self.motor_variable_names
                     ),
                     'implicit_em_torque_model'
                 )
+
+                input_power_active = self.declare_variable('input_power_active', shape=(num_active_nodes,))
+                input_power = csdl.matvec(selection_indices, input_power_active)
+                
+
+                self.register_output('input_power', input_power)
+
+                # REORGANIZE OUTPUT TO FIT ALL OPERATING CONDITIONS
             else:
         # ========================= IMPLICIT T_EM MODEL =========================
                 T_em = self.declare_variable('T_em', shape=(num_nodes,)) # STATE of implicit model

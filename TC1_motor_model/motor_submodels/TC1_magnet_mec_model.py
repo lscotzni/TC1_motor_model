@@ -177,10 +177,10 @@ class MagnetMECModel(Model):
         #     A_f2, bm, phi_r, lambda_m
         # )
 
-        B_delta, phi_air, F_total, F_delta, H_y, phi_f, phi_s, phi_mag = solve_MEC(
+        B_delta, phi_air, H_y, F_delta, F_total,  phi_f, phi_s, phi_mag = solve_MEC(
             t1, b1, h_t1, alpha_i, tau, l_ef, hj1, ly, sigma_air, K_theta, 
             A_f2, bm, phi_r, lambda_m, 
-            expose=['phi_air', 'F_total', 'F_delta', 'H_y', 'phi_f', 'phi_s', 'phi_mag']
+            expose=['phi_air', 'H_y', 'F_delta', 'F_total',  'phi_f', 'phi_s', 'phi_mag']
         )
 
         # --- MEC POST-PROCESSING ---
