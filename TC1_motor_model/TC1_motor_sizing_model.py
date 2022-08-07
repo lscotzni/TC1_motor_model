@@ -29,12 +29,6 @@ class TorqueMassModel(Model):
     def fit_torque_to_mass(self, motor_mass):
         fitting_coeff = self.fitting_coeff.get(str(self.order))
 
-        # torque_fitting = []
-        # for i, val in enumerate(fitting_coeff):
-        #     print(i, val)
-        #     torque_fitting.append(val * motor_mass**i)
-        # return csdl.sum(*torque_fitting)
-
         torque_fitting_array = self.create_output(
             'torque_fitting_array',
             shape=(self.order + 1,)

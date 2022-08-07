@@ -76,7 +76,6 @@ class InductanceQImplicitModel(Model):
             'inductance_residual',
             I_d_temp**2 + I_q_temp**2 - I_w**2
         )
-        self.print_var(inductance_residual)
 
 class InductanceModel(Model):
     def initialize(self):

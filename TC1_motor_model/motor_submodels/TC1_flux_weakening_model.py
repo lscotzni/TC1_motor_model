@@ -218,7 +218,6 @@ class FluxWeakeningImplicitModel(Model):
             'Id_fw_residual',
             (a1/a5*Id_fw**4 + a2/a5*Id_fw**3 + a3/a5*Id_fw**2 + a4/a5*Id_fw + 1)/1e3
         )
-        # model.print_var(residual)
         ''' --- END IMPLICIT MODEL FOR FLUX WEAKENING --- '''
 
         solve_flux_weakening = self.create_implicit_operation(model)
@@ -247,9 +246,6 @@ class FluxWeakeningImplicitModel(Model):
             'Iq_fw',
             T_em/(1.5*p)/(PsiF_expanded+(L_d_expanded-L_q_expanded)*Id_fw)
         )
-
-        self.print_var(var=Id_fw)
-        self.print_var(var=Iq_fw)
 
 
 ''' 

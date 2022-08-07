@@ -83,8 +83,6 @@ class MTPAModel(Model):
             Iq_MTPA_star * I_base_expanded
         ) # NEED TO DIMENSIONALIZE Iq_MTPA_star COMING FROM MTPA IMPLICIT SOLVER
 
-        self.print_var(Iq_MTPA)
-
 if __name__ == '__main__':
     num_nodes = 2
     p = 6

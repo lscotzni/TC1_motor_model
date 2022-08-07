@@ -75,9 +75,6 @@ class MaxTorqueModel(Model):
         T_lim = max_torque_implicit_op(
             A, B, C, D, E
         )
-        self.print_var(T_lim)
-        self.print_var(lower_bracket)
-        self.print_var(upper_bracket)
 
 class TorqueLimitModel(Model):
     def initialize(self):
@@ -213,7 +210,7 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
             p_iter = p[i]
             q_iter = q[i]
             cond = 4*p_iter**3 + 27*q_iter**2 # THIS DETERMINES THE EXISTENCE OF VARIOUS ROOTS
-            print('p: ', p_iter, 'q: ', q_iter, 'cond: ', cond)
+            # print('p: ', p_iter, 'q: ', q_iter, 'cond: ', cond)
 
             # IF CLAUSE TO COMPUTE LOWER BRACKET
             if cond > 0:
@@ -222,8 +219,8 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
 
                 cubic_arg_1 = -q_iter/2 + (q_iter**2/4 + p_iter**3/27)**(1/2)
                 cubic_arg_2 = -q_iter/2 - (q_iter**2/4 + p_iter**3/27)**(1/2)
-                print(cubic_arg_1)
-                print(cubic_arg_2)
+                # print(cubic_arg_1)
+                # print(cubic_arg_2)
 
                 cardano_sol = np.cbrt(cubic_arg_1) + np.cbrt(cubic_arg_2)
 
@@ -236,7 +233,7 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
                 lower_bracket_val = np.max(np.array([t1-t_shift[i], t2-t_shift[i], t3-t_shift[i]]))
 
             elif cond < 0:
-                print('cond less than 0')
+                # print('cond less than 0')
                 a_cubic = 3*B[i]/(4*A[i])
                 b_cubic = 2*C[i]/(4*A[i])
                 c_cubic = D[i]/(4*A[i])
@@ -248,12 +245,12 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
                 root1 = -1 * (2*(P1)**0.5*np.cos(theta/3)) - a_cubic/3
                 root2 = -1 * (2*(P1)**0.5*np.cos((theta+2*np.pi)/3)) - a_cubic/3
                 root3 = -1 * (2*(P1)**0.5*np.cos((theta-2*np.pi)/3)) - a_cubic/3
-                print('potential roots: ', root1, root2, root3)
+                # print('potential roots: ', root1, root2, root3)
 
                 lower_bracket_val = np.max(np.array([root1, root2, root3]))
 
             outputs['lower_bracket'][i] = lower_bracket_val 
-            print(lower_bracket_val)
+            # print(lower_bracket_val)
 
             # ITERATIVE METHOD TO FIND UPPER BRACKET
             A_iter = A[i]
@@ -278,11 +275,11 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
                     KeyError('Method did not converge')
             
             outputs['upper_bracket'][i] = start
-            print(start)
-            print('---')
+            # print(start)
+            # print('---')
 
-        print(outputs['lower_bracket'])
-        print(outputs['upper_bracket'])
+        # print(outputs['lower_bracket'])
+        # print(outputs['upper_bracket'])
 
         # exit()
 

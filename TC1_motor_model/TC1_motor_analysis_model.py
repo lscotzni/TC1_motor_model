@@ -198,10 +198,6 @@ class TC1MotorAnalysisModel(Model):
             'e_bracket',
             4*T_lim**2*(R_expanded**2 + (omega*L_d_expanded)**2)
         )
-        self.print_var(a_bracket)
-        self.print_var(c_bracket)
-        self.print_var(d_bracket)
-        self.print_var(e_bracket)
 
         self.add(
             FluxWeakeningBracketModel(
@@ -213,9 +209,6 @@ class TC1MotorAnalysisModel(Model):
 
         Iq_fw_bracket = self.declare_variable('Iq_fw_bracket', shape=(num_active_nodes, ))
         Id_fw_bracket = self.declare_variable('Id_fw_bracket', shape=(num_active_nodes, ))
-
-        self.print_var(Iq_fw_bracket)
-        self.print_var(Id_fw_bracket)
 
         if True:
 

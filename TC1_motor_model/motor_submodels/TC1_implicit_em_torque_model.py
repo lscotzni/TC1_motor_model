@@ -167,8 +167,6 @@ class EMTorqueImplicitModel(Model):
             'residual',
             load_torque - efficiency_active*T_em
         )
-        self.print_var(T_em)
-        self.print_var(residual)
 
 
 class EMTorqueModel(Model):
