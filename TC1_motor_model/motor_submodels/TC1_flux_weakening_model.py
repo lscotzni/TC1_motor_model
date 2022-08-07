@@ -90,31 +90,31 @@ class FluxWeakeningModel(Model):
         PsiF_expanded = self.declare_variable('PsiF_expanded', shape=(num_nodes,))
 
         D = (3*p*(L_d_expanded-L_q_expanded))
-        if False:
-            # FLUX WEAKENING BRACKETING IMPLICIT MODEL (TO FIND BRACKET LIMIT)
-            a_bracket = self.register_output(
-                'a_bracket',
-                D**2 * ((omega*L_q_expanded)**2 + R_expanded**2)
-            )
-            c_bracket = self.register_output(
-                'c_bracket',
-                (3*p*PsiF_expanded)**2 * (R_expanded**2 + (omega*L_q_expanded)**2) + \
-                12*p*omega*R_expanded*T_lim*(L_d_expanded-L_q_expanded)**2 - (V_lim*D)**2
-            )
-            d_bracket = self.register_output(
-                'd_bracket',
-                -12*p*PsiF_expanded*T_lim*(R_expanded**2 + omega**2*L_d_expanded*L_q_expanded)
-            )
-            e_bracket = self.register_output(
-                'e_bracket',
-                4*T_lim**2*(R_expanded**2 + (omega*L_d_expanded)**2)
-            )
+        # if True:
+        #     # FLUX WEAKENING BRACKETING IMPLICIT MODEL (TO FIND BRACKET LIMIT)
+        #     a_bracket = self.register_output(
+        #         'a_bracket',
+        #         D**2 * ((omega*L_q_expanded)**2 + R_expanded**2)
+        #     )
+        #     c_bracket = self.register_output(
+        #         'c_bracket',
+        #         (3*p*PsiF_expanded)**2 * (R_expanded**2 + (omega*L_q_expanded)**2) + \
+        #         12*p*omega*R_expanded*T_lim*(L_d_expanded-L_q_expanded)**2 - (V_lim*D)**2
+        #     )
+        #     d_bracket = self.register_output(
+        #         'd_bracket',
+        #         -12*p*PsiF_expanded*T_lim*(R_expanded**2 + omega**2*L_d_expanded*L_q_expanded)
+        #     )
+        #     e_bracket = self.register_output(
+        #         'e_bracket',
+        #         4*T_lim**2*(R_expanded**2 + (omega*L_d_expanded)**2)
+        #     )
 
             
-            self.add(
-                FluxWeakeningBracketModel(pole_pairs=p, num_nodes=num_nodes),
-                'flux_weakening_bracket_method'
-            )
+        #     self.add(
+        #         FluxWeakeningBracketModel(pole_pairs=p, num_nodes=num_nodes),
+        #         'flux_weakening_bracket_method'
+        #     )
         Id_fw_bracket_low = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
         # THE LOWER END OF THE BRACKET (MOST NEGATIVE, WHERE DISCRIMINANT = 0)
         
@@ -159,7 +159,7 @@ class FluxWeakeningModel(Model):
         I_d_voltage_upper_lim = self.register_output(
             'I_d_voltage_upper_lim',
             (-omega**2*PsiF_expanded*L_d_expanded + (V_lim**2 * (omega**2*L_d_expanded**2 + R_expanded**2) - (R_expanded*omega*PsiF_expanded)**2)**(1/2)) \
-                / (2*(R_expanded**2 + (omega*L_d_expanded)**2))
+                / (R_expanded**2 + (omega*L_d_expanded)**2)
         )
 
         I_d_upper_bracket_list = self.create_output('I_d_upper_bracket_list', shape=(num_nodes,2))
@@ -216,8 +216,9 @@ class FluxWeakeningImplicitModel(Model):
 
         residual = model.register_output(
             'Id_fw_residual',
-            a1*Id_fw**4 + a2*Id_fw**3 + a3*Id_fw**2 + a4*Id_fw + a5
+            (a1/a5*Id_fw**4 + a2/a5*Id_fw**3 + a3/a5*Id_fw**2 + a4/a5*Id_fw + 1)/1e3
         )
+        # model.print_var(residual)
         ''' --- END IMPLICIT MODEL FOR FLUX WEAKENING --- '''
 
         solve_flux_weakening = self.create_implicit_operation(model)
@@ -229,7 +230,7 @@ class FluxWeakeningImplicitModel(Model):
         )
         solve_flux_weakening.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
-            maxiter=1000,
+            maxiter=100,
             iprint=True,
         )
         solve_flux_weakening.linear_solver = ScipyKrylov()
@@ -246,6 +247,9 @@ class FluxWeakeningImplicitModel(Model):
             'Iq_fw',
             T_em/(1.5*p)/(PsiF_expanded+(L_d_expanded-L_q_expanded)*Id_fw)
         )
+
+        self.print_var(var=Id_fw)
+        self.print_var(var=Iq_fw)
 
 
 ''' 

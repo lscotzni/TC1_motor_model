@@ -7,33 +7,6 @@ from csdl_om import Simulator
 from TC1_motor_model.motor_submodels.TC1_flux_weakening_model import FluxWeakeningModel
 from TC1_motor_model.motor_submodels.TC1_mtpa_model import MTPAModel
 
-class ResistanceAdjustment(csdl.CustomExplicitOperation):
-    def initialize(self):
-        self.parameters.declare('num_nodes')
-
-    def define(self):
-
-        self.num_nodes = self.parameters['num_nodes']
-        self.add_input('R_expanded', shape=(self.num_nodes,))
-        self.add_input('omega', shape=(self.num_nodes, ))
-        self.add_input('load_torque', shape=(self.num_nodes, ))
-
-        self.add_output('R_power_loss', shape=(self.num_nodes, ))
-
-    def compute(self, inputs, outputs):
-        R_expanded = inputs['R_expanded']
-        omega = inputs['omega']
-        load_torque = inputs['load_torque']
-
-        R_power_loss = np.zeros((self.num_nodes, ))
-
-        for i in range(self.num_nodes):
-            if omega[i] != 0 and load_torque[i] != 0:
-                R_power_loss[i] = R_expanded[i]
-
-        outputs['R_power_loss'] = R_power_loss
-        
-
 class EMTorqueImplicitModel(Model):
     def initialize(self):
         self.parameters.declare('pole_pairs')
@@ -52,18 +25,20 @@ class EMTorqueImplicitModel(Model):
 
         self.motor_variable_names = self.parameters['motor_variable_names']
 
-        T_em = self.declare_variable('T_em', shape=(num_nodes,)) # STATE of implicit model
+        T_em = self.declare_variable('T_em', val=100., shape=(num_nodes,)) # STATE of implicit model
 
+        load_torque = self.declare_variable('load_torque', shape=(num_nodes,))
+        omega = self.declare_variable('omega', shape=(num_nodes,))
+        implicit_motor_variables = self.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
+        for i in range(implicit_motor_variables.shape[0]):
+            self.register_output(self.motor_variable_names[i], implicit_motor_variables[i])
         R_expanded = self.declare_variable('R_expanded', shape=(num_nodes,))
         L_d_expanded = self.declare_variable('L_d_expanded', shape=(num_nodes,))
         L_q_expanded = self.declare_variable('L_q_expanded', shape=(num_nodes,))
         PsiF_expanded = self.declare_variable('PsiF_expanded', shape=(num_nodes,))
-        load_torque = self.declare_variable('load_torque', shape=(num_nodes,))
-        omega = self.declare_variable('omega', shape=(num_nodes,))
         
-        implicit_motor_variables = self.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
-        for i in range(implicit_motor_variables.shape[0]):
-            self.register_output(self.motor_variable_names[i], implicit_motor_variables[i])
+        Id_fw_bracket = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
+        
 
         # FLUX WEAKENING MODEL
         self.add(
@@ -74,6 +49,13 @@ class EMTorqueImplicitModel(Model):
             ),
             'flux_weakening_model',
         )
+
+        I_d_upper_bracket_list = self.declare_variable('I_d_upper_bracket_list', shape=(num_nodes,2))
+        Id_upper_lim = self.declare_variable('Id_upper_lim', shape=(num_nodes,))
+
+        I_d_upper_bracket_list_dummy = self.register_output('I_d_upper_bracket_list_dummy',1*I_d_upper_bracket_list)
+        Id_upper_lim_dummy = self.register_output('Id_upper_lim_dummy',1*Id_upper_lim)
+
 
         # MTPA MODEL
         self.add(
@@ -104,14 +86,27 @@ class EMTorqueImplicitModel(Model):
             'voltage_amplitude',
             (U_d**2 + U_q**2)**(1/2)
         )
+        a1 = self.declare_variable('a1', shape=(num_nodes,))
+        a2 = self.declare_variable('a2', shape=(num_nodes,))
+        a3 = self.declare_variable('a3', shape=(num_nodes,))
+        a4 = self.declare_variable('a4', shape=(num_nodes,))
+        a5 = self.declare_variable('a5', shape=(num_nodes,))
+
+        a1_dummy = self.register_output('a1_dummy', a1*1)
+        a2_dummy = self.register_output('a2_dummy', a2*1)
+        a3_dummy = self.register_output('a3_dummy', a3*1)
+        a4_dummy = self.register_output('a4_dummy', a4*1)
+        a5_dummy = self.register_output('a5_dummy', a5*1)
 
         Iq_fw = self.declare_variable('Iq_fw', shape=(num_nodes,))
         Iq_MTPA = self.declare_variable('Iq_MTPA', shape=(num_nodes,)) # CHECK NAMING SCHEME FOR VARIABLE
+        Id_fw = self.declare_variable('Id_fw', shape=(num_nodes,))
 
         self.register_output('Iq_fw_dummy', Iq_fw * 1)
         self.register_output('Iq_MTPA_dummy', Iq_MTPA * 1) # CHECK NAMING SCHEME FOR VARIABLE
+        self.register_output('Id_fw_dummy', Id_fw * 1)
                     
-        k = 1 # ASK SHUOFENG WHAT THIS IS
+        k = .1 # ASK SHUOFENG WHAT THIS IS
         I_q = (csdl.exp(k*(U_rated - V_lim))*Iq_fw + Iq_MTPA) / (csdl.exp(k*(U_rated - V_lim)) + 1.0)
         I_d = (T_em / (1.5*p*I_q) - PsiF_expanded) / (L_d_expanded-L_q_expanded) # CHECK SIZE OF COMPUTATIONS HERE
         current_amplitude = self.register_output(
@@ -119,11 +114,6 @@ class EMTorqueImplicitModel(Model):
             (I_q**2 + I_d**2)**0.5
         )
         ''' POWER LOSS CALCULATIONS '''
-        # Resistance adjustment for zero torque & omega
-        # R_power_loss = csdl.custom(
-        #     R_expanded, omega, load_torque, op=ResistanceAdjustment(num_nodes=num_nodes)
-        # )
-        # R_power_loss = self.register_output('R_power_loss', R_power_loss)
         
         # load power
         # eq of the form P0 = speed * torque
@@ -177,6 +167,8 @@ class EMTorqueImplicitModel(Model):
             'residual',
             load_torque - efficiency_active*T_em
         )
+        self.print_var(T_em)
+        self.print_var(residual)
 
 
 class EMTorqueModel(Model):
@@ -228,9 +220,11 @@ class EMTorqueModel(Model):
         L_d_expanded = self.declare_variable('L_d_expanded', shape=(num_nodes,))
         L_q_expanded = self.declare_variable('L_q_expanded', shape=(num_nodes,))
         PsiF_expanded = self.declare_variable('PsiF_expanded', shape=(num_nodes,))
+        Id_fw_bracket = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
         I_q_rated = self.declare_variable('I_q_temp')
         B_delta = self.declare_variable('B_delta')
         D_i = self.declare_variable('D_i')
+        
 
         # T_em, current_amplitude, output_power, input_power_active, efficiency_active = implicit_torque_operation(
         #     load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
@@ -244,10 +238,10 @@ class EMTorqueModel(Model):
         #     expose=['efficiency_active', 'input_power_active', 'current_amplitude', 'output_power', 'Iq_fw_dummy', 'Iq_MTPA_dummy']
         # )
 
-        T_em, Iq_fw_dummy, Iq_MTPA_dummy,current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
+        T_em, I_d_upper_bracket_list_dummy, Id_upper_lim_dummy, a1_dummy, a2_dummy, a3_dummy, a4_dummy, a5_dummy, Iq_fw_dummy, Iq_MTPA_dummy, Id_fw_dummy, current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
             load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
-            PsiF_expanded, I_q_rated, B_delta, D_i,
-            expose=['Iq_fw_dummy', 'Iq_MTPA_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
+            PsiF_expanded, Id_fw_bracket, I_q_rated, B_delta, D_i, 
+            expose=['I_d_upper_bracket_list_dummy', 'Id_upper_lim_dummy', 'a1_dummy','a2_dummy','a3_dummy','a4_dummy','a5_dummy','Iq_fw_dummy', 'Iq_MTPA_dummy', 'Id_fw_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
         )
         
 

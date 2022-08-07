@@ -68,7 +68,7 @@ class ParseActiveOperatingConditions(csdl.CustomExplicitOperation):
         outputs['load_torque_rotor_active'] = np.array(load_torque_rotor_active)
         outputs['selection_indices'] = self.selection_indices
 
-        self.declare_derivatives('*', '*')
+        # self.declare_derivatives('*', '*')
         
     def compute_derivatives(self, inputs, derivatives):
         derivatives['omega_rotor_active', 'omega_rotor'] = np.transpose(self.selection_indices)
@@ -112,7 +112,7 @@ class TC1MotorAnalysisModel(Model):
 
         # DECLARE VARIABLES FROM SIZING & UPSTREAM MODELS
         D_i = self.declare_variable('D_i')
-        # T_em_max = self.declare_variable('T_em_max')
+        T_em_max = self.declare_variable('T_em_max')
         Rdc = self.declare_variable('Rdc')
         motor_variables = self.declare_variable('motor_variables', shape=(25,)) # array of motor sizing outputs
         for i in range(motor_variables.shape[0]):
@@ -198,6 +198,10 @@ class TC1MotorAnalysisModel(Model):
             'e_bracket',
             4*T_lim**2*(R_expanded**2 + (omega*L_d_expanded)**2)
         )
+        self.print_var(a_bracket)
+        self.print_var(c_bracket)
+        self.print_var(d_bracket)
+        self.print_var(e_bracket)
 
         self.add(
             FluxWeakeningBracketModel(
@@ -207,8 +211,11 @@ class TC1MotorAnalysisModel(Model):
             'flux_weakening_bracket_method'
         )
 
-        self.declare_variable('Iq_fw_bracket', shape=(num_active_nodes, ))
-        self.declare_variable('Id_fw_bracket', shape=(num_active_nodes, ))
+        Iq_fw_bracket = self.declare_variable('Iq_fw_bracket', shape=(num_active_nodes, ))
+        Id_fw_bracket = self.declare_variable('Id_fw_bracket', shape=(num_active_nodes, ))
+
+        self.print_var(Iq_fw_bracket)
+        self.print_var(Id_fw_bracket)
 
         if True:
 
@@ -229,8 +236,13 @@ class TC1MotorAnalysisModel(Model):
                 input_power_active = self.declare_variable('input_power_active', shape=(num_active_nodes,))
                 input_power = csdl.matvec(selection_indices, input_power_active)
                 
-
                 self.register_output('input_power', input_power)
+
+                # CALCULATING UPPER LIMIT TORQUE CURVE  
+                T_upper_lim_curve = self.register_output(
+                    'T_upper_lim_curve',
+                    -csdl.log(csdl.exp(-T_lim) + csdl.exp(-csdl.expand(T_em_max, (num_active_nodes,))))
+                )
 
                 # REORGANIZE OUTPUT TO FIT ALL OPERATING CONDITIONS
             else:

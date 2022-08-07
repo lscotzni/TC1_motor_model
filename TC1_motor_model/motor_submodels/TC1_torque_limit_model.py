@@ -49,8 +49,7 @@ class MaxTorqueModel(Model):
 
         T_lim_residual = max_torque_implicit_model.register_output(
             'T_lim_residual',
-            # A/E*T_lim**4 + B/E*T_lim**3 + C/E*T_lim**2 + D/E*T_lim + 1,
-            A/C*T_lim**4 + B/C*T_lim**3 + T_lim**2 + D/C*T_lim + E/C
+            (A/E*T_lim**4 + B/E*T_lim**3 + C/E*T_lim**2 + D/E*T_lim + 1) / 1e3
         )
 
         max_torque_implicit_op = self.create_implicit_operation(max_torque_implicit_model)
@@ -76,6 +75,9 @@ class MaxTorqueModel(Model):
         T_lim = max_torque_implicit_op(
             A, B, C, D, E
         )
+        self.print_var(T_lim)
+        self.print_var(lower_bracket)
+        self.print_var(upper_bracket)
 
 class TorqueLimitModel(Model):
     def initialize(self):
@@ -234,6 +236,7 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
                 lower_bracket_val = np.max(np.array([t1-t_shift[i], t2-t_shift[i], t3-t_shift[i]]))
 
             elif cond < 0:
+                print('cond less than 0')
                 a_cubic = 3*B[i]/(4*A[i])
                 b_cubic = 2*C[i]/(4*A[i])
                 c_cubic = D[i]/(4*A[i])
@@ -245,6 +248,7 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
                 root1 = -1 * (2*(P1)**0.5*np.cos(theta/3)) - a_cubic/3
                 root2 = -1 * (2*(P1)**0.5*np.cos((theta+2*np.pi)/3)) - a_cubic/3
                 root3 = -1 * (2*(P1)**0.5*np.cos((theta-2*np.pi)/3)) - a_cubic/3
+                print('potential roots: ', root1, root2, root3)
 
                 lower_bracket_val = np.max(np.array([root1, root2, root3]))
 

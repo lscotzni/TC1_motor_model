@@ -109,19 +109,23 @@ if __name__ == '__main__':
     op_voltage = 500
     V_lim = 800
     rated_current = 123
-    num_nodes = 4 # dummy input
 
-    D_i = 0.3723
-    L = 0.2755
+    # D_i = 0.3723
+    # L = 0.2755
 
     # D_i = 0.182
     # L = 0.086
 
+    D_i = 0.1
+    L = 0.08
+
     # load_torque_rotor = 600
     # load_torque_rotor = 136.17287413
     # load_torque_rotor = 544. 
-    load_torque_rotor = np.array([136.17287413, 0, 600, 0])
-    omega_rotor = np.array([2200, 0, 200, 0])
+    # load_torque_rotor = np.array([136.17287413, 0, 600, 0]) # OLD
+    # omega_rotor = np.array([2200, 0, 200, 0]) #OLD
+    load_torque_rotor = np.array([501.062, 281.9387, 0., 173.18, 172.317]) # CL, CR, 0, H, H
+    omega_rotor = np.array([3387.3981, 3092.1469, 0., 3383.05, 3375.10]) # CL, CR, 0, H, H
     # em_torque_test_range = np.arange(20,100+1, 1) * 4
     em_torque_test_range = np.arange(20,100+1, 20) * 4
     model_test=False
@@ -130,6 +134,8 @@ if __name__ == '__main__':
     else:
         num_nodes=len(load_torque_rotor)
 
+    num_nodes = len(load_torque_rotor)
+    num_active_nodes = np.count_nonzero(load_torque_rotor)
 
     m = TC1MotorModel(
         pole_pairs=p,
@@ -141,7 +147,7 @@ if __name__ == '__main__':
         fit_coeff_dep_H=fit_coeff_dep_H,
         fit_coeff_dep_B=fit_coeff_dep_B,
         num_nodes=num_nodes,
-        num_active_nodes=2,
+        num_active_nodes=num_active_nodes,
         model_test=model_test,
         
     )
@@ -195,13 +201,15 @@ if __name__ == '__main__':
 
     print(' ---- OUTPUTS FROM TORQUE LIMIT MODEL ---- ')
     print('limit torque: (found implicitly)', sim['T_lim'])
-    print(sim['Iq_fw_bracket'])
-    print(sim['Id_fw_bracket'])
-    print(sim['A_quartic'])
-    print(sim['B_quartic'])
-    print(sim['C_quartic'])
-    print(sim['D_quartic'])
-    print(sim['E_quartic'])
+    print('Iq FW bracket: ', sim['Iq_fw_bracket'])
+    print('Id lower bracket: ', sim['Id_fw_bracket'])
+    print('Id upper bracket: ', sim['Id_upper_lim_dummy'])
+    print('Id upper bracket (before min): ', sim['I_d_upper_bracket_list_dummy'])
+    # print(sim['A_quartic'])
+    # print(sim['B_quartic'])
+    # print(sim['C_quartic'])
+    # print(sim['D_quartic'])
+    # print(sim['E_quartic'])
 
     if model_test:
         print(' ---- OUTPUTS FROM FLUX WEAKENING ---- ')
@@ -226,6 +234,7 @@ if __name__ == '__main__':
     print(' ---- OUTPUTS FROM POST PROCESSING ---- ')
     print('Current Amplitude: ', sim['current_amplitude'])
     print('Iq FW: ', sim['Iq_fw_dummy'])
+    print('Id FW: ', sim['Id_fw_dummy'])
     print('Iq MTPA: ', sim['Iq_MTPA_dummy'])
     # print('Voltage Amplitude: ', sim['voltage_amplitude'])
     output_power = sim['output_power']
@@ -237,6 +246,12 @@ if __name__ == '__main__':
     print('Input Power: ', sim['input_power'])
     print('Efficiency: ', sim['efficiency_active'])
     print('residual: ', residual)
+    print('upper torque limit: ', sim['T_upper_lim_curve'])
+    print('a1: ', sim['a1_dummy'])
+    print('a2: ', sim['a2_dummy'])
+    print('a3: ', sim['a3_dummy'])
+    print('a4: ', sim['a4_dummy'])
+    print('a5: ', sim['a5_dummy'])
     if not model_test:
         print('resultant EM Torque: ', sim['T_em'])
     
