@@ -116,8 +116,8 @@ if __name__ == '__main__':
     # D_i = 0.182
     # L = 0.086
 
-    D_i = 0.1
-    L = 0.08
+    D_i = .35
+    L = .35
 
     # load_torque_rotor = 600
     # load_torque_rotor = 136.17287413

@@ -117,8 +117,8 @@ if __name__ == '__main__':
     num_nodes = len(load_torque_rotor)
     num_active_nodes = np.count_nonzero(load_torque_rotor)
 
-    D_i_vec = np.linspace(0.08, 0.5, 2)
-    L_vec = np.linspace(0.08, 0.3, 2)
+    D_i_vec = np.linspace(0.08, 0.35, 15)
+    L_vec = np.linspace(0.08, 0.35, 15)
 
     motor_mass_map = np.zeros((len(D_i_vec), len(L_vec)))
     efficiency_map = np.zeros(shape=motor_mass_map.shape)
@@ -149,8 +149,20 @@ if __name__ == '__main__':
             motor_mass_map[i,j] = sim['motor_mass']
             efficiency_map[i,j] = sim['efficiency_active']
 
-    fig1 = plt.figure(1)
-    plt.contour([D_i_vec, L_vec,], motor_mass_map)
+    fig1, ax1 = plt.subplots()
+    CS = ax1.contour(D_i_vec, L_vec, motor_mass_map)
+    ax1.clabel(CS, fontsize=9, inline=True)
+    plt.xlabel('Diameter')
+    plt.ylabel('Length')
+    plt.title('Motor Mass (kg)')
+    plt.savefig('geom_sweep_results/motor_mass_map_geom_sweep.png')
 
-    fig2 = plt.figure(2)
-    plt.contour([D_i_vec, L_vec,], efficiency_map)
+    fig2, ax2 = plt.subplots()
+    CS = ax2.contour(D_i_vec, L_vec, efficiency_map)
+    ax2.clabel(CS, fontsize=9, inline=True)
+    plt.xlabel('Diameter')
+    plt.ylabel('Length')
+    plt.title('Efficiency')
+    plt.savefig('geom_sweep_results/efficiency_map_geom_sweep.png')
+
+    plt.show()

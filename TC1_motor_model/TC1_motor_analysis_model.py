@@ -47,6 +47,9 @@ class ParseActiveOperatingConditions(csdl.CustomExplicitOperation):
         self.add_output('load_torque_rotor_active', shape=(self.num_active_nodes,))
         self.add_output('selection_indices', shape=(self.num_nodes,self.num_active_nodes))
 
+        self.declare_derivatives('omega_rotor_active', 'omega_rotor')
+        self.declare_derivatives('load_torque_rotor_active', 'load_torque_rotor')
+
     def compute(self, inputs, outputs):
 
         omega_rotor = inputs['omega_rotor']
