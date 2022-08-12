@@ -240,6 +240,9 @@ class TC1MotorAnalysisModel(Model):
                     -csdl.log(csdl.exp(-T_lim) + csdl.exp(-csdl.expand(T_em_max, (num_active_nodes,))))
                 )
 
+                max_torque_constraint = self.register_output(name='max_torque_constraint',
+                                                             var=T_upper_lim_curve-load_torque)
+                self.add_constraint(name='max_torque_constraint', lower=0.)
                 # REORGANIZE OUTPUT TO FIT ALL OPERATING CONDITIONS
             else:
         # ========================= IMPLICIT T_EM MODEL =========================
