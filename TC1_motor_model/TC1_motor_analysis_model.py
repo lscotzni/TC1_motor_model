@@ -250,7 +250,7 @@ class TC1MotorAnalysisModel(Model):
                 # self.print_var(var=load_torque)
                 # self.print_var(var=max_torque_constraint)
 
-                self.add_constraint(name='max_torque_constraint', lower=0.)
+                # self.add_constraint(name='max_torque_constraint', lower=0., scaler=1e-3)
                 # REORGANIZE OUTPUT TO FIT ALL OPERATING CONDITIONS
             else:
         # ========================= IMPLICIT T_EM MODEL =========================
