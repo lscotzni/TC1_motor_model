@@ -237,11 +237,19 @@ class TC1MotorAnalysisModel(Model):
                 # CALCULATING UPPER LIMIT TORQUE CURVE  
                 T_upper_lim_curve = self.register_output(
                     'T_upper_lim_curve',
-                    -csdl.log(csdl.exp(-T_lim) + csdl.exp(-csdl.expand(T_em_max, (num_active_nodes,))))
+                    # -csdl.log(csdl.exp(-T_lim) + csdl.exp(-csdl.expand(T_em_max, (num_active_nodes,))))
+                    csdl.min(csdl.reshape(T_lim, new_shape=(num_active_nodes, )),
+                             csdl.expand(T_em_max, (num_active_nodes, )))
                 )
 
                 max_torque_constraint = self.register_output(name='max_torque_constraint',
                                                              var=T_upper_lim_curve-load_torque)
+                self.print_var(var=T_em_max)
+                self.print_var(var=T_lim)
+                self.print_var(var=T_upper_lim_curve)
+                self.print_var(var=load_torque)
+                self.print_var(var=max_torque_constraint)
+
                 self.add_constraint(name='max_torque_constraint', lower=0.)
                 # REORGANIZE OUTPUT TO FIT ALL OPERATING CONDITIONS
             else:
