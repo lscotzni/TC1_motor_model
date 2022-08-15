@@ -177,7 +177,7 @@ class TC1MotorAnalysisModel(Model):
                     num_nodes=num_active_nodes
                 ),
                 'torque_limit_model'
-            )
+        )
         T_lim = self.declare_variable('T_lim', shape=(num_active_nodes,))
         T_lower_lim = self.declare_variable('T_lower_lim', val=0., shape=(num_active_nodes,))
         

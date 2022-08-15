@@ -149,7 +149,6 @@ if __name__ == '__main__':
         num_nodes=num_nodes,
         num_active_nodes=num_active_nodes,
         model_test=model_test,
-        
     )
 
     rep = GraphRepresentation(m)
