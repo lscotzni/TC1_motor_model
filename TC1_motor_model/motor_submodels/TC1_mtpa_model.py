@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from csdl import Model, ScipyKrylov, NewtonSolver
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 class MTPAImplicitModel(Model):
     def initialize(self):

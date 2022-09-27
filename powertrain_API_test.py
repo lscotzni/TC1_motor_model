@@ -1,7 +1,7 @@
 import numpy as np
 
-from powertrain_features import MotorFeature, BatteryFeature, ConverterFeature, DCBusFeature
-from powertrain_features import Powertrain
+from powertrain.powertrain_features import MotorFeature, BatteryFeature, ConverterFeature, DCBusFeature
+from powertrain.powertrain_features import Powertrain
 '''
 POWERTRAIN TEST SCRIPT:
     - L+C SIMPLIFIED CONCEPT WITH 1 PUSHER, 2 VERTICAL ROTORS
@@ -23,7 +23,7 @@ dcbus_pointsets = ['dcbus_ps1']
 
 
 # INITIALIZE POWERTRAIN OBJECT
-p = Powertrain()
+p = Powertrain(name='powertrain')
 
 battery_1 = BatteryFeature(
     name='battery_1',
@@ -38,11 +38,11 @@ battery_2 = BatteryFeature(
 )
 
 # another option:
-[battery_1, battery_2] = BatteryFeature(
-    base_name='battery',
-    pointsets=battery_pointsets,
-    level=[1.0, 0.4]
-)
+# [battery_1, battery_2] = BatteryFeature(
+#     base_name='battery',
+#     pointsets=battery_pointsets,
+#     level=[1.0, 0.4]
+# )
 
 dcdc_1 = ConverterFeature(
     name='dcdc_1',
@@ -57,14 +57,12 @@ dcdc_2 = ConverterFeature(
 dcbus_1 = DCBusFeature(
     name='dcbus_1',
     pointset=dcbus_pointsets[0],
-    output_branches=3
 )
 
 acdc_1 = ConverterFeature(
     name='acdc_1',
     pointset=acdc_conv_pointsets[0],
     type='ac-dc',
-    output_branches=1
 )
 
 acdc_2 = ConverterFeature(
@@ -127,7 +125,7 @@ p.connect_nodes(
     end=[acdc_3, motor_3]
 )
 
-p.assemble() 
+# p.assemble() 
 # THIS STEP MAKES THE PROPER CONNECTIONS AND ADDS INFO TO CSDL MODELS
 ''' 
 NOTES: 

@@ -2,7 +2,7 @@ import numpy as np
 from csdl import Model, NewtonSolver, ScipyKrylov
 # from csdl import GraphRepresentation
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 from TC1_motor_model.motor_submodels.TC1_flux_weakening_model import FluxWeakeningModel
 from TC1_motor_model.motor_submodels.TC1_mtpa_model import MTPAModel
@@ -39,7 +39,6 @@ class LoadTorqueImplicitModel(Model):
         
         Id_fw_bracket = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
         
-
         # FLUX WEAKENING MODEL
         self.add(
             FluxWeakeningModel(
@@ -56,7 +55,6 @@ class LoadTorqueImplicitModel(Model):
         I_d_upper_bracket_list_dummy = self.register_output('I_d_upper_bracket_list_dummy',1*I_d_upper_bracket_list)
         Id_upper_lim_dummy = self.register_output('Id_upper_lim_dummy',1*Id_upper_lim)
 
-
         # MTPA MODEL
         self.add(
             MTPAModel(
@@ -65,21 +63,11 @@ class LoadTorqueImplicitModel(Model):
             ),
             'mtpa_model',
         )
-        # POST-PROCESSING MODEL
-        # self.add(
-        #     PostProcessingModel(
-        #         pole_pairs=p,
-        #         phases=m,
-        #         op_voltage=op_voltage,
-        #         V_lim=V_lim,
-        #         num_nodes=num_nodes
-        #     ),
-        #     'post_processing_model',
-        # )
+
         I_q_rated = self.declare_variable('I_q_temp')
         I_q_rated_expanded = csdl.expand(I_q_rated, shape=(num_nodes,))
 
-        f_i = 3000*p/60 # rated omega from sizing model = 3000
+        f_i = 5000*p/60 # rated omega from sizing model = 3000
         U_d = -R_expanded*rated_current*np.sin(0.6283) - 2*np.pi*f_i*L_q_expanded*I_q_rated_expanded
         U_q = R_expanded*rated_current*np.sin(0.6283) + 2*np.pi*f_i*(PsiF_expanded - L_d_expanded*I_q_rated_expanded)
         U_rated = self.register_output(
@@ -105,9 +93,15 @@ class LoadTorqueImplicitModel(Model):
         self.register_output('Iq_fw_dummy', Iq_fw * 1)
         self.register_output('Iq_MTPA_dummy', Iq_MTPA * 1) # CHECK NAMING SCHEME FOR VARIABLE
         self.register_output('Id_fw_dummy', Id_fw * 1)
+
+        Id_MTPA = (L_d_expanded - L_q_expanded)**(-1) * (T_em/(3/2*p*Iq_MTPA) - PsiF_expanded)
+        U_d_MTPA = R_expanded*Id_MTPA - omega*L_q_expanded*Iq_MTPA
+        U_q_MTPA = omega*L_d_expanded*Id_MTPA + R_expanded*Iq_MTPA + omega*PsiF_expanded
+        U_MTPA = (U_d_MTPA**2 + U_q_MTPA**2)**0.5
                     
-        k = .1 # ASK SHUOFENG WHAT THIS IS
-        I_q = (csdl.exp(k*(U_rated - V_lim))*Iq_fw + Iq_MTPA) / (csdl.exp(k*(U_rated - V_lim)) + 1.0)
+        k = 1 # ASK SHUOFENG WHAT THIS IS
+        # I_q = (csdl.exp(k*(U_rated - V_lim))*Iq_fw + Iq_MTPA) / (csdl.exp(k*(U_rated - V_lim)) + 1.0)
+        I_q = (csdl.exp(k*(U_MTPA - V_lim))*Iq_fw + Iq_MTPA) / (csdl.exp(k*(U_MTPA - V_lim)) + 1.0)
         I_d = (T_em / (1.5*p*I_q) - PsiF_expanded) / (L_d_expanded-L_q_expanded) # CHECK SIZE OF COMPUTATIONS HERE
         current_amplitude = self.register_output(
             'current_amplitude',
@@ -135,8 +129,8 @@ class LoadTorqueImplicitModel(Model):
         Acu = implicit_motor_variables[7]
         B_delta_expanded = csdl.expand(B_delta, (num_nodes,))
         
-        K_e = (a*np.pi)**2 * sigma_c/6
-        V_s = csdl.expand((np.pi*l_ef*(D1-D_i)**2)-36*l_ef*Acu, (num_nodes,)); # volume of stator
+        K_e = (a*np.pi)**2 * sigma_c/60
+        V_s = csdl.expand((np.pi*l_ef*(D1-D_i)**2)/4-36*l_ef*Acu, (num_nodes,)); # volume of stator
         K_c = 0.822;
         P_eddy = K_e*V_s*(B_delta_expanded*frequency)**2; # eddy loss
 
@@ -236,7 +230,7 @@ class EfficiencyMapModel(Model):
         #     expose=['efficiency_active', 'input_power_active', 'current_amplitude', 'output_power', 'Iq_fw_dummy', 'Iq_MTPA_dummy']
         # )
 
-        load_torqu, I_d_upper_bracket_list_dummy, Id_upper_lim_dummy, a1_dummy, a2_dummy, a3_dummy, a4_dummy, a5_dummy, Iq_fw_dummy, Iq_MTPA_dummy, Id_fw_dummy, current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
+        load_torque, I_d_upper_bracket_list_dummy, Id_upper_lim_dummy, a1_dummy, a2_dummy, a3_dummy, a4_dummy, a5_dummy, Iq_fw_dummy, Iq_MTPA_dummy, Id_fw_dummy, current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
             T_em, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
             PsiF_expanded, Id_fw_bracket, I_q_rated, B_delta, D_i, 
             expose=['I_d_upper_bracket_list_dummy', 'Id_upper_lim_dummy', 'a1_dummy','a2_dummy','a3_dummy','a4_dummy','a5_dummy','Iq_fw_dummy', 'Iq_MTPA_dummy', 'Id_fw_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']

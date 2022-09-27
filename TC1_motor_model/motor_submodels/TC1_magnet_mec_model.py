@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from csdl import Model, ScipyKrylov, NewtonSolver
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 class MagnetMECImplicitModel(Model):
     def initialize(self):
@@ -141,13 +141,8 @@ class MagnetMECModel(Model):
         Br  = 1.2
         lower_bound = eps
         upper_bound = Br
-        # lower_bound = self.declare_variable('magnet_mec_lb', 0.0)
-        # upper_bound = self.declare_variable('magnet_mec_ub', Br)
-        # lower_bound = self.register_output('lower_bound', lower_bound * 1.0)
-        # upper_bound = self.register_output('upper_bound', upper_bound * 1.0)
         solve_MEC = self.create_implicit_operation(MECmodel)
         solve_MEC.declare_state('B_delta', residual='residual', bracket=(lower_bound, upper_bound))
-        # solve_MEC.declare_state('B_delta', residual='residual')
         
         solve_MEC.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
@@ -171,11 +166,6 @@ class MagnetMECModel(Model):
         bm      = self.declare_variable('bm') # ARC LENGTH OF MAGNET
         phi_r   = self.declare_variable('phi_r') 
         lambda_m = self.declare_variable('lambda_m')
-
-        # B_delta = solve_MEC(
-        #     t1, b1, h_t1, alpha_i, tau, l_ef, hj1, ly, sigma_air, K_theta, 
-        #     A_f2, bm, phi_r, lambda_m
-        # )
 
         B_delta, phi_air, H_y, F_delta, F_total,  phi_f, phi_s, phi_mag = solve_MEC(
             t1, b1, h_t1, alpha_i, tau, l_ef, hj1, ly, sigma_air, K_theta, 

@@ -1,6 +1,6 @@
 import numpy as np 
 import matplotlib.pyplot as plt
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 from python_csdl_backend import Simulator
 from csdl import Model, GraphRepresentation
 import csdl
@@ -21,7 +21,6 @@ class TC1MotorModel(Model):
         self.parameters.declare('pole_pairs') # 6
         self.parameters.declare('phases') # 3
         self.parameters.declare('num_slots') # 36
-        self.parameters.declare('op_voltage')
         self.parameters.declare('V_lim')
         self.parameters.declare('rated_current')
         self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
@@ -35,7 +34,6 @@ class TC1MotorModel(Model):
         m = self.parameters['phases']
         p = self.parameters['pole_pairs']
         Z = self.parameters['num_slots']
-        op_voltage = self.parameters['op_voltage']
         V_lim = self.parameters['V_lim']
         rated_current = self.parameters['rated_current']
         fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
@@ -72,7 +70,6 @@ class TC1MotorModel(Model):
                 pole_pairs=p,
                 phases=m,
                 num_slots=Z,
-                op_voltage=op_voltage,
                 V_lim=V_lim,
                 rated_current=rated_current,
                 fit_coeff_dep_H=fit_coeff_dep_H,
@@ -107,7 +104,6 @@ if __name__ == '__main__':
     p = 6
     m = 3
     Z = 36
-    op_voltage = 500
     V_lim = 800
     rated_current = 123
 
@@ -129,7 +125,6 @@ if __name__ == '__main__':
                 pole_pairs=p,
                 phases=m,
                 num_slots=Z,
-                op_voltage=op_voltage,
                 V_lim=V_lim,
                 rated_current=rated_current,
                 fit_coeff_dep_H=fit_coeff_dep_H,

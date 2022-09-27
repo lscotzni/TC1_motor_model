@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from csdl import Model, ScipyKrylov, NewtonSolver, NonlinearBlockGS
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 class InductanceQImplicitModel(Model):
     def initialize(self):
@@ -114,19 +114,14 @@ class InductanceModel(Model):
         )
 
         eps = self.declare_variable('eps', 1e-5)
-        phi_air_bracket = self.declare_variable('asdf', val=1)
-        # phi_air_bracket = phi_air/eps*eps # DECLARING FOR BRACKET
-        # phi_air_bracket = 0.01512911
         Inductance_MEC = self.create_implicit_operation(q_inductance_model)
         Inductance_MEC.declare_state('phi_aq', residual='inductance_residual', bracket=(eps, phi_air))
-        # Inductance_MEC.declare_state('phi_aq', residual='inductance_residual')
         Inductance_MEC.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
             maxiter=100,
             iprint=True
         )
         Inductance_MEC.linear_solver = ScipyKrylov()
-        # Inductance_MEC.nonlinear_solver = NonlinearBlockGS(maxiter=100)
 
         alpha_i = self.declare_variable('alpha_i')
         pole_pitch = self.declare_variable('pole_pitch')
@@ -160,9 +155,6 @@ class InductanceModel(Model):
         K_st = F_total/F_delta
         Cx = (4*np.pi*f_i*mu_0*l_ef*(Kdp1*W_1)**2) / p
 
-        # self.register_output('K_st', K_st) # DELETE
-        # self.register_output('Cx', Cx) # DELETE
-
         h_k = 0.0008 # NOT SURE HWAT THIS IS
         h_os = 1.5 * h_k # NOT SURE WHAT THIS IS
         b_sb = self.declare_variable('slot_bottom_width')
@@ -172,12 +164,7 @@ class InductanceModel(Model):
         lambda_L1 = 0.45
         lambda_S1 = lambda_U1 + lambda_L1
 
-        # self.register_output('lambda_U1', lambda_U1)# DELETE
-        # self.register_output('lambda_S1', lambda_S1)# DELETE
-
         X_s1 = (2*p*m*lambda_S1*Cx)/(Z*Kdp1**2)
-        
-        # self.register_output('X_s1', X_s1)# DELETE
 
         s_total = 0.1
         pole_pitch = self.declare_variable('pole_pitch')
@@ -186,23 +173,17 @@ class InductanceModel(Model):
 
         X_d1 = (m*pole_pitch*s_total*Cx) / (air_gap_depth*K_theta*K_st*(np.pi*Kdp1)**2)
 
-        # self.register_output('X_d1', X_d1)# DELETE
-
         l_B = l_ef + 2*0.01 # straight length of coil
         Tau_y = self.declare_variable('Tau_y')
 
         X_E1 = 0.47*Cx*(l_B - 0.64*Tau_y)/(l_ef*Kdp1**2)
         X_1 = X_s1+X_d1+X_E1
 
-        # self.register_output('X_E1', X_E1)# DELETE
-        # self.register_output('X_1', X_1)# DELETE
-
         Kf = self.declare_variable('Kf')
         Kad = self.register_output('Kad', 1/Kf)
 
         
         F_ad = 0.35*m*Kad*Kdp1*W_1*I_d_temp/p
-        # self.register_output('F_ad', F_ad) # DELETE
         hm = 0.004 # MAGNET THICKNESS
         Hc = 847138 # MAGNET COERCIVITY
         K_sigma_air = self.declare_variable('K_sigma_air') # COEFFICIENT OF LEAKAGE IN AIR GAP
@@ -220,15 +201,9 @@ class InductanceModel(Model):
         aa = 1.0 + (-1 * f_a) # 1 - f_a DOES NOT WORK
         bb = lambda_n * aa
         cc = lambda_n + 1
-        self.register_output('aa', aa)
-        self.register_output('bb', bb)
-        self.register_output('cc', cc)
         bm_N = bb/cc
-        # bm_N = (lambda_n*(1-f_a)) / (lambda_n + 1) # lambda_n comes from MEC
-        # bm_N = 0.713853 * lambda_n / lambda_n
         phi_air_N_temp = bm_N + (-1) * (1.0 + (-1) * bm_N)*lambda_leak_standard
         phi_air_N = phi_air_N_temp * Am_r * Br
-        # phi_air_N = 0.01248*lambda_leak_standard/lambda_leak_standard*Am_r/Am_r
         E_d = 4.44*f_i*Kdp1*W_1*phi_air_N*K_phi # EM at d-axis
         Xad  = ((E_o-E_d)**2)**0.5/I_d_temp/2**0.5
         Xd = Xad + X_1
@@ -236,14 +211,6 @@ class InductanceModel(Model):
             'L_d',
             Xd / (2*np.pi*f_i)
         ) # d-axis inductance
-
-        # self.register_output('E_o', E_o) # DELETE
-        # self.register_output('bm_N', bm_N) # DELETE
-        # self.register_output('phi_air_N_temp', phi_air_N_temp) # DELETE
-        # self.register_output('phi_air_N', phi_air_N) # DELETE
-        # self.register_output('E_d', E_d) # DELETE
-        # self.register_output('Xad', Xad) # DELETE
-        # self.register_output('Xd', Xd) # DELETE
 
         E_aq = phi_aq*E_o/phi_air # EMF @ Q-AXIS
         Xaq = E_aq/I_q_temp

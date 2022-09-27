@@ -1,8 +1,9 @@
 import numpy as np 
 from csdl import Model, GraphRepresentation
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
-from powertrain_submodels import DCBusModel, ConverterModel
+from powertrain_submodels import DCBusModel, ConverterModel, GearBoxModel
+# MOTOR AND BATTERY HAVE THEIR OWN MODELS, MAY GET ADDED HERE
 
 class PowertrainModel(Model):
     def initialize(self):
@@ -12,7 +13,7 @@ class PowertrainModel(Model):
         self.parameters.declare('list_dcdc_converters')
         self.parameters.declare('list_batteries')
         self.parameters.declare('num_nodes')
-        self.parameters.declare('connection_list') # SPECIFIES INTERNAL NDOE CONNECTIONS FOR POWER
+        self.parameters.declare('connection_list') # SPECIFIES INTERNAL NODE CONNECTIONS FOR POWER
 
     def define(self):
         list_motors = self.parameters['list_motors']

@@ -1,6 +1,6 @@
 import numpy as np
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 from TC1_motor_model.motor_submodels.TC1_inductance_mec_model import InductanceModel
 from TC1_motor_model.permeability.mu_fitting import permeability_fitting

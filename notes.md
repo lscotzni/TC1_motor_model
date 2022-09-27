@@ -2,19 +2,8 @@
 data-fitted smooth models exist for materials; should I make them inputs or should
 I just add the coefficients manually?
   - add as inputs to the initial model; allows for generality with other materials
-ask Darshan how the RPM for each flight condition is chosen *(I believe this is a DV)*
-still not totally sure about what is needed from me or how to set models up for caddee
-  - what do I need to alter in my models to fit them in?
-  - my model won't need any of the 12 "universal" inputs/variables, do I still need to consider those in the model I'm working on?
-  - how are constraints handled here? ex: I need to incorporate the max voltage into the analysis models
-Still running into issues with the sizing model and the analysis models regarding brackets
-
-motor sizing has 28 register_outputs that feed into the 5 different submodels in analysis
-  - 3 input parameters (phases, slots, poles)
-
 =========================================================================================
 # Things to mention at meeting with Zeyu/Shuofeng/Gabe / NOTES FROM MOTOR MEETING
-confirm the state phi_aq for inductance MEC and the bracket
 Important thing to consider: is phi_aq GUARANTEED to fall between 0 and phi_air?
   it's done this way in the MATLAB code so I want to clarify this
   - bracket should be between 0 and phi_air **ALWAYS**
@@ -43,3 +32,9 @@ fix permeability fitting for B = f(H) *DONE* and write as a class
 POWERTRAIN MODEL:
 - ask about the input phase current and how it's different from Id and Iq in the motor model
   - USE THE CURRENT COMPONENTS FOR POST-PROCESSING CALCULATIONS
+- use sub-dictionaries to store the information for different nodes
+  - keys include in & out connections, efficiency (except battery and motor), and component-specific parameters like gear ratio
+
+# DISCUSS WITH ZEYU + SHUOFENG:
+- concerns with exact values in the efficiency map:
+  - potentially add the factor "p" when converting to rad/sec (wait for Zeyu's response)

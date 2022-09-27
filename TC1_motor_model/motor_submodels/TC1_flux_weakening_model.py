@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from csdl import Model, ScipyKrylov, NewtonSolver
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 class FluxWeakeningBracketModel(Model):
     def initialize(self):
@@ -13,10 +13,6 @@ class FluxWeakeningBracketModel(Model):
     def define(self):
         num_nodes = self.parameters['num_nodes']
         p = self.parameters['pole_pairs']
-        # a_bracket = self.declare_variable('a_bracket', shape=(num_nodes, ))
-        # c_bracket = self.declare_variable('c_bracket', shape=(num_nodes, ))
-        # d_bracket = self.declare_variable('d_bracket', shape=(num_nodes, ))
-        # e_bracket = self.declare_variable('e_bracket', shape=(num_nodes, ))
 
         # --------------------------------- IMPLICIT MODEL START ---------------------------------
         bracket_implicit_model = Model()
@@ -79,42 +75,12 @@ class FluxWeakeningModel(Model):
         T_em = self.declare_variable('T_em', shape=(num_nodes,))
         T_lim = self.declare_variable('T_lim', shape=(num_nodes,)) # UPPER CURVE LIMIT
 
-        # R_expanded = self.register_output('R_expanded', csdl.expand(R, (num_nodes,)))
-        # L_d_expanded = self.register_output('L_d_expanded', csdl.expand(L_d, (num_nodes,)))
-        # L_q_expanded = self.register_output('L_q_expanded',csdl.expand(L_q, (num_nodes,)))
-        # PsiF_expanded = self.register_output('PsiF_expanded',csdl.expand(phi_air, (num_nodes,)))
-
         R_expanded = self.declare_variable('R_expanded', shape=(num_nodes,))
         L_d_expanded = self.declare_variable('L_d_expanded', shape=(num_nodes,))
         L_q_expanded = self.declare_variable('L_q_expanded', shape=(num_nodes,))
         PsiF_expanded = self.declare_variable('PsiF_expanded', shape=(num_nodes,))
 
         D = (3*p*(L_d_expanded-L_q_expanded))
-        # if True:
-        #     # FLUX WEAKENING BRACKETING IMPLICIT MODEL (TO FIND BRACKET LIMIT)
-        #     a_bracket = self.register_output(
-        #         'a_bracket',
-        #         D**2 * ((omega*L_q_expanded)**2 + R_expanded**2)
-        #     )
-        #     c_bracket = self.register_output(
-        #         'c_bracket',
-        #         (3*p*PsiF_expanded)**2 * (R_expanded**2 + (omega*L_q_expanded)**2) + \
-        #         12*p*omega*R_expanded*T_lim*(L_d_expanded-L_q_expanded)**2 - (V_lim*D)**2
-        #     )
-        #     d_bracket = self.register_output(
-        #         'd_bracket',
-        #         -12*p*PsiF_expanded*T_lim*(R_expanded**2 + omega**2*L_d_expanded*L_q_expanded)
-        #     )
-        #     e_bracket = self.register_output(
-        #         'e_bracket',
-        #         4*T_lim**2*(R_expanded**2 + (omega*L_d_expanded)**2)
-        #     )
-
-            
-        #     self.add(
-        #         FluxWeakeningBracketModel(pole_pairs=p, num_nodes=num_nodes),
-        #         'flux_weakening_bracket_method'
-        #     )
         Id_fw_bracket_low = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
         # THE LOWER END OF THE BRACKET (MOST NEGATIVE, WHERE DISCRIMINANT = 0)
         
@@ -171,7 +137,6 @@ class FluxWeakeningModel(Model):
             csdl.min(I_d_upper_bracket_list, axis=1)
         )
 
-        
         ''' --- START IMPLICIT MODEL FOR FLUX WEAKENING --- '''
         self.add(
             FluxWeakeningImplicitModel(
@@ -246,15 +211,6 @@ class FluxWeakeningImplicitModel(Model):
             'Iq_fw',
             T_em/(1.5*p)/(PsiF_expanded+(L_d_expanded-L_q_expanded)*Id_fw)
         )
-
-
-''' 
-TO-DO: 
-    - ADD BRACKETS IN TERMS OF CSDL VARIABLES (comment out but have the form of the equation ready)
-
-
-
-'''
 
 if __name__ == '__main__':
     m = FluxWeakeningModel(

@@ -1,6 +1,6 @@
 import numpy as np 
 import matplotlib.pyplot as plt
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 # from python_csdl_backend import Simulator
 from csdl import Model, GraphRepresentation
 import csdl
@@ -49,12 +49,13 @@ class TorqueMassModel(Model):
 class TC1MotorSizingModel(Model):
     '''
     INPUTS TO THIS MODEL:
-        - rated power
-        - rated omega (rated speed of motor)
+        - length and diameter of motor (as DVs or inputs)
 
     OUTPUTS OF THIS MODEL:
         - motor geometry
-        - motor mass
+        - motor resistance
+        - motor max torque (structural)
+
     '''
     def initialize(self):
         # MOTOR DISCRETE PARAMETERS
@@ -76,7 +77,7 @@ class TC1MotorSizingModel(Model):
         # --- RATED PARAMETERS AS INPUTS FROM OPTIMIZER ---
         D_i = self.declare_variable('D_i') # inner radius of stator
         L = self.declare_variable('L') # effective length of motor
-        rated_omega = 3000
+        rated_omega = 5000
         eta_0 = 0.96 # ASSUMED INITIAL EFFICIENCY; MATLAB CODE STARTS WITH 0.88
         PF = 1 # POWER FACTOR
 
@@ -91,27 +92,16 @@ class TC1MotorSizingModel(Model):
 
         lambda_i = 1.25
         outer_stator_radius = D_i * lambda_i
-        # outer_stator_radius = self.register_output(
-        #     'outer_stator_radius',
-        #     outer_stator_radius
-        # )
         
-
         # --- POLE PITCH AND OTHER PITCHES ---
         pole_pitch = np.pi*D_i/(2*p)
         tooth_pitch = np.pi*D_i/Z
-        # pole_pitch = self.register_output('pole_pitch', pole_pitch)
-        # tooth_pitch = self.register_output('tooth_pitch', tooth_pitch)
         
-
         # --- AIR GAP LENGTH ---
         air_gap_depth = 0.4*line_load*pole_pitch/(0.9e6*B_air_gap_max)
-        l_ef = L + 2*air_gap_depth
-        rotor_radius = D_i - 2*air_gap_depth
+        l_ef = L + 2*air_gap_depth # final effective length of motor
+        rotor_radius = D_i - 2*air_gap_depth # D2 in MATLAB code
         D_shaft = 0.3 * rotor_radius # outer radius of shaft
-        # air_gap_depth = self.register_output('air_gap_depth', air_gap_depth)
-        # l_ef = self.register_output('l_ef', l_ef) # final effective length of motor
-        # rotor_radius = self.register_output('rotor_radius', rotor_radius) # D2 in MATLAB code
         
         # --- WINDINGS ---
         I_kw = I_w * eta_0 * PF
@@ -119,7 +109,6 @@ class TC1MotorSizingModel(Model):
             / (m*I_kw)
         conductors_per_slot = m*a*conductors_per_phase/Z
         turns_per_phase = conductors_per_phase/2
-        # turns_per_phase = self.register_output('turns_per_phase', turns_per_phase)
         # these lines of code will cause errors compared to MATLAB code bc Zeyu
         # uses floor to round, and we cannot do that
 
@@ -127,40 +116,32 @@ class TC1MotorSizingModel(Model):
 
         J = 5. # target current density
         Acu = I_w/(a*J*N_p) * 10.**(-6.)
-        # Acu = self.register_output('Acu',Acu)
         d_coil = 2 * (Acu/np.pi)**0.5
 
         # --- SLOT GEOMETRY ---
         kfe = 0.95 # LAMINATION COEFFICIENT
         Bt = 1.7 # FLUX DENSITY IN STATOR TOOTH
 
-        tooth_width = tooth_pitch * B_air_gap_max / (kfe * Bt)
-        # tooth_width = self.register_output('tooth_width', tooth_width) # STATOR TOOTH WIDTH
+        tooth_width = tooth_pitch * B_air_gap_max / (kfe * Bt) # STATOR TOOTH WIDTH
 
         B_ys = 1.35 # FLUX DENSITY IN STATOR YOKE
         h_ys = (pole_pitch*alpha_B*B_air_gap_max) / (2*kfe*B_ys) # HEIGHT OF YOKE IN STATOR
-        # h_ys = self.register_output('height_yoke_stator', h_ys) # HEIGHT OF YOKE IN STATOR
 
         theta_t = 360/Z # ANGULAR SWEEP OF STATOR SLOT IN DEGREES
         theta_sso = 0.5*theta_t
         theta_ssi = 0.3*theta_sso
         b_sb = theta_ssi*np.pi*D_i/360 # WIDTH OF BOTTOM OF SLOT
         h_slot = (outer_stator_radius - D_i)/2 - h_ys # HEIGHT OF SLOT
-        # b_sb = self.register_output('slot_bottom_width', b_sb) # WIDTH OF BOTTOM OF SLOT
-        # h_slot = self.register_output('slot_height', h_slot) # HEIGHT OF SLOT
 
         h_k = 0.0008 # NOT SURE HWAT THIS IS
         h_os = 1.5 * h_k # NOT SURE WHAT THIS IS
 
         b_s1 = (np.pi*(D_i+2*(h_os+h_k)))/36 - tooth_width # RADIALLY INNER WIDTH OF SLOT
-        # b_s1 = self.register_output('slot_width_inner', b_s1) # RADIALLY INNER WIDTH OF SLOT
         b_s2 = (np.pi*(D_i+2*h_slot))/36 - tooth_width # RADIALLY OUTER WIDTH OF SLOT
 
         Tau_y = np.pi*(D_i+h_slot) / (2*p)
         L_j1 = np.pi*(outer_stator_radius-h_ys) / (4*p) # STATOR YOKE LENGTH FOR MAGNETIC CIRCUIT CALCULATION
         A_slot = (b_s1+b_s2)*(h_slot-h_k-h_os)/2
-        # Tau_y = self.register_output('Tau_y', Tau_y)
-        # L_j1 = self.register_output('L_j1', L_j1) # STATOR YOKE LENGTH FOR MAGNETIC CIRCUIT CALCULATION
 
         # --- WINDING FACTOR ---
         Kp1 = csdl.sin(pole_pitch*90*np.pi/pole_pitch/180) # INTEGRAL WINDING
@@ -168,7 +149,6 @@ class TC1MotorSizingModel(Model):
         alpha = 360*p/Z # ELECTRICAL ANGLE PER SLOT
         Kd1 = np.sin(q*alpha/2)/(q*np.sin(alpha/2))
         Kdp1 = Kd1*Kp1
-        # Kdp1 = self.register_output('Kdp1', Kdp1)
 
         # --- MAGNET GEOMETRY ---
         hm = 0.004 # MAGNET THICKNESS
@@ -176,7 +156,6 @@ class TC1MotorSizingModel(Model):
         theta_m = 0.78*theta_p
         Dm = rotor_radius - 0.002
         bm = Dm*np.pi*theta_m/360
-        # bm = self.register_output('bm', bm)
 
         T = 75 # assuming normal operating temp
         Br_20 = 1.2 # Br at 20 C
@@ -194,32 +173,24 @@ class TC1MotorSizingModel(Model):
         mu_r = Br/(mu_0*Hc) # RELATIVE MAGNET PERMEABILITY
 
         Am_r = bm*l_ef # RADIAL CROSS SECTIONAL AREA OF MAGNET
-        # Am_r = self.register_output('Am_r', Am_r) # RADIAL CROSS SECTIONAL AREA OF MAGNET
         rho_magnet = 7.6 # MAGNET DENSITY (g/cm^3)
         mass_magnet = 2*p*bm*hm*l_ef*rho_magnet*1e3 # MAGNET MASS
 
         phi_r = 1.2*Am_r
-        # phi_r = self.register_output('phi_r',phi_r)
         Fc = 2*Hc*hm
 
         lambda_m = phi_r/Fc
-        # lambda_m = self.register_output('lambda_m',lambda_m)
         alpha_p1 = bm/pole_pitch
         alpha_i = alpha_p1+4/((pole_pitch/air_gap_depth)+(6/(1-alpha_p1)))
-        # alpha_i = self.register_output('alpha_i', alpha_i)
 
         Kf = 4*csdl.sin(alpha_i*np.pi/2)/np.pi # COEFF OF MAGNETIC FLUX DENSITY ALONG AIR GAP
         K_phi = 8.5*csdl.sin(alpha_i*np.pi/2)/(np.pi**2*alpha_i) # COEFF OF FLUX ALONG AIR GAP
-        # Kf = self.register_output('Kf', Kf) # COEFF OF MAGNETIC FLUX DENSITY ALONG AIR GAP
-        # K_phi = self.register_output('K_phi', K_phi) # COEFF OF FLUX ALONG AIR GAP
         K_theta1 = tooth_pitch*(4.4*air_gap_depth + 0.75*b_sb)/(tooth_pitch*(4.4*air_gap_depth + 0.75*b_sb)-b_sb**2)
         K_theta2 = 1 # no rotor slot
 
         K_theta = K_theta1*K_theta2
-        # K_theta = self.register_output('K_theta', K_theta)
         l_f2 = hm
         A_f2 = l_f2*l_ef
-        # A_f2 = self.register_output('A_f2', A_f2)
 
         # --- RESISTANCE & MASS CALCULATION
         rho = 0.0217e-6 # RESISTIVITY ------ GET CLARIFICATION ON UNITS
@@ -229,23 +200,16 @@ class TC1MotorSizingModel(Model):
         Rdc = self.register_output(
             'Rdc',
             2 * rho * turns_per_phase * l_coil / \
-            (a * Acu * N_p) # DC RESISTANCE
-        )
+            (a * Acu * N_p) 
+        ) # DC RESISTANCE
 
         if False:
-            Rdc1 = self.register_output(
-                'Rdc1',
-                2*rho*turns_per_phase*l_coil / \
-                (a*np.pi/2*d_coil**2) # DC RESISTANCE
-            )
-            # ZEYU'S CODE USES Rdc1 AND Rdc IN DIFFERENT PLACES; ASK ZEYU ABOUT THIS
-
             delta = (rho/(np.pi*mu_0*f_i)) ** 0.5
 
             Rac = self.register_output(
                 'Rac',
                 Rdc / ((2*delta/d_coil) - (delta/d_coil)**2)
-            ) # NOT ACCURATE AND INCORRECT COMPARED TO ZEYU'S CODE
+            ) # IGNORING FOR NOW, MAY USE LATER
 
         C = 1.05
         rho_cu = 8.9 # mass density of copper in g/cm^3
@@ -261,14 +225,8 @@ class TC1MotorSizingModel(Model):
             np.pi*l_ef*rho_fe*((outer_stator_radius/2)**2 - (D_shaft/2)**2)*1e3
         )
 
-        # POPULATE motor_variables WITH THE register_output CALLS 
-        # THE ONLY ONES THAT WILL BE IGNORED ARE:
-        #   - motor_mass
-        #   - resistance (Rdc, Rac)
-
-        # rated frequency f_i is no longer a CSDL object; will need to calculate this
-        # in each individual model given a rated omega
-
+        # POPULATE motor_variables WITH THE RELEVANT MOTOR VARIABLES
+        # THE ONLY ONES THAT WILL BE IGNORED ARE motor_mass AND resistance (Rdc)
         motor_variables = self.create_output(
             'motor_variables',
             shape=(25,)
@@ -313,11 +271,11 @@ if __name__ == '__main__':
         rated_current=123
     )
 
-    # D_i = 0.182
-    # L = 0.086
+    D_i = 0.182
+    L = 0.086
 
-    D_i = 0.3723
-    L = 0.2755
+    # D_i = 0.3723
+    # L = 0.2755
 
     rep = GraphRepresentation(m)
     sim = Simulator(rep)

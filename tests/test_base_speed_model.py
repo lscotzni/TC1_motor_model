@@ -1,7 +1,7 @@
 import graphlib
 import numpy as np
 from csdl import Model, NewtonSolver, ScipyKrylov, GraphRepresentation
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 class BaseSpeedImplicitModelTest(Model):
     def initialize(self):

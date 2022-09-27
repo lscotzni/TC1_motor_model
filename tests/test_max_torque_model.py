@@ -1,7 +1,7 @@
 import numpy as np
 from csdl import Model, NewtonSolver, ScipyKrylov, GraphRepresentation
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 class MaxTorqueImplicitModel(Model):
     def define(self):

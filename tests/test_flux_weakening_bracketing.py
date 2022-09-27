@@ -1,6 +1,6 @@
 import numpy as np
 from csdl import GraphRepresentation, Model
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 from test_max_torque_model import *
 from TC1_motor_model.motor_submodels.TC1_flux_weakening_model import *

@@ -2,7 +2,7 @@ import numpy as np
 from csdl import Model, NewtonSolver, ScipyKrylov
 # from csdl import GraphRepresentation
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 from TC1_motor_model.motor_submodels.TC1_flux_weakening_model import FluxWeakeningModel
 from TC1_motor_model.motor_submodels.TC1_mtpa_model import MTPAModel
@@ -15,6 +15,8 @@ class EMTorqueImplicitModel(Model):
         self.parameters.declare('rated_current')
         self.parameters.declare('phases')
         self.parameters.declare('motor_variable_names')
+        self.parameters.declare('mode', default='input_load', values=['input_load', 'efficiency_map'])
+        # mode='input_load' means T_em is the state; mode='efficiency_map' means load_torque is the state
 
     def define(self):
         p = self.parameters['pole_pairs']
@@ -39,7 +41,6 @@ class EMTorqueImplicitModel(Model):
         
         Id_fw_bracket = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
         
-
         # FLUX WEAKENING MODEL
         self.add(
             FluxWeakeningModel(
@@ -56,7 +57,6 @@ class EMTorqueImplicitModel(Model):
         I_d_upper_bracket_list_dummy = self.register_output('I_d_upper_bracket_list_dummy',1*I_d_upper_bracket_list)
         Id_upper_lim_dummy = self.register_output('Id_upper_lim_dummy',1*Id_upper_lim)
 
-
         # MTPA MODEL
         self.add(
             MTPAModel(
@@ -65,21 +65,11 @@ class EMTorqueImplicitModel(Model):
             ),
             'mtpa_model',
         )
-        # POST-PROCESSING MODEL
-        # self.add(
-        #     PostProcessingModel(
-        #         pole_pairs=p,
-        #         phases=m,
-        #         op_voltage=op_voltage,
-        #         V_lim=V_lim,
-        #         num_nodes=num_nodes
-        #     ),
-        #     'post_processing_model',
-        # )
+
         I_q_rated = self.declare_variable('I_q_temp')
         I_q_rated_expanded = csdl.expand(I_q_rated, shape=(num_nodes,))
 
-        f_i = 3000*p/60 # rated omega from sizing model = 3000
+        f_i = 5000*p/60 # rated omega from sizing model = 3000
         U_d = -R_expanded*rated_current*np.sin(0.6283) - 2*np.pi*f_i*L_q_expanded*I_q_rated_expanded
         U_q = R_expanded*rated_current*np.sin(0.6283) + 2*np.pi*f_i*(PsiF_expanded - L_d_expanded*I_q_rated_expanded)
         U_rated = self.register_output(
@@ -105,9 +95,16 @@ class EMTorqueImplicitModel(Model):
         self.register_output('Iq_fw_dummy', Iq_fw * 1)
         self.register_output('Iq_MTPA_dummy', Iq_MTPA * 1) # CHECK NAMING SCHEME FOR VARIABLE
         self.register_output('Id_fw_dummy', Id_fw * 1)
+
+        Id_MTPA = (L_d_expanded - L_q_expanded)**(-1) * (T_em/(3/2*p*Iq_MTPA) - PsiF_expanded)
+        U_d_MTPA = R_expanded*Id_MTPA - omega*L_q_expanded*Iq_MTPA
+        U_q_MTPA = omega*L_d_expanded*Id_MTPA + R_expanded*Iq_MTPA + omega*PsiF_expanded
+        U_MTPA = (U_d_MTPA**2 + U_q_MTPA**2)**0.5
                     
-        k = .1 # ASK SHUOFENG WHAT THIS IS
-        I_q = (csdl.exp(k*(U_rated - V_lim))*Iq_fw + Iq_MTPA) / (csdl.exp(k*(U_rated - V_lim)) + 1.0)
+        k = .5 # ASK SHUOFENG WHAT THIS IS
+        # I_q = (csdl.exp(k*(U_rated - V_lim))*Iq_fw + Iq_MTPA) / (csdl.exp(k*(U_rated - V_lim)) + 1.0)
+        I_q = (csdl.exp(k*(U_MTPA - V_lim))*Iq_fw + Iq_MTPA) / (csdl.exp(k*(U_MTPA - V_lim)) + 1.0)
+        # I_q = csdl.min()
         I_d = (T_em / (1.5*p*I_q) - PsiF_expanded) / (L_d_expanded-L_q_expanded) # CHECK SIZE OF COMPUTATIONS HERE
         current_amplitude = self.register_output(
             'current_amplitude',
@@ -117,7 +114,10 @@ class EMTorqueImplicitModel(Model):
         
         # load power
         # eq of the form P0 = speed * torque
-        P0 = load_torque * omega * 2*np.pi/60
+        # P0 = load_torque * omega * 2*np.pi/60
+        P0 = load_torque*omega
+        # P0 = T_em * omega * 2*np.pi/60/p
+        # P0 = T_em * omega/p
         self.register_output('output_power', P0)
         frequency = omega*p/60
 
@@ -132,18 +132,25 @@ class EMTorqueImplicitModel(Model):
         B_delta = self.declare_variable('B_delta')
         l_ef = implicit_motor_variables[4]
         D1 = implicit_motor_variables[0]
+        D2 = implicit_motor_variables[5] # rotor radius
+        D_shaft = 0.3 * D2
+        bm = implicit_motor_variables[16] 
+        hm = 0.004 # magnet thickness
         Acu = implicit_motor_variables[7]
         B_delta_expanded = csdl.expand(B_delta, (num_nodes,))
         
-        K_e = (a*np.pi)**2 * sigma_c/6
-        V_s = csdl.expand((np.pi*l_ef*(D1-D_i)**2)-36*l_ef*Acu, (num_nodes,)); # volume of stator
+        K_e = (a*np.pi)**2 * sigma_c/60
+        V_s = csdl.expand((np.pi*l_ef*(D1-D_i)**2)/4-36*l_ef*Acu, (num_nodes,)); # volume of stator
+        V_s1 = csdl.expand((np.pi*l_ef*(D2-D_shaft)**2)/4, (num_nodes,))
+        V_t = csdl.expand(2*p*l_ef*bm*hm, (num_nodes,))
         K_c = 0.822;
-        P_eddy = K_e*V_s*(B_delta_expanded*frequency)**2; # eddy loss
+        P_eddy = K_e*(V_s+V_s1)*(B_delta_expanded*frequency)**2; # eddy loss
+        P_eddy_s = K_e*(V_t)*(B_delta_expanded*frequency)**2; # eddy loss
 
         # hysteresis loss
         K_h = 100
         n_h = 2
-        P_h = K_h*V_s*frequency*B_delta_expanded**n_h
+        P_h = K_h*(V_s+V_s1)*frequency*B_delta_expanded**n_h
 
         # stress loss
         P_stress = 0.01*P0
@@ -153,19 +160,23 @@ class EMTorqueImplicitModel(Model):
         fr = 3e-3 # friction coefficient
         rho_air = 1.225 # air density kg/m^3
         # D2 = self.declare_variable('rotor_radius')
-        D2 = implicit_motor_variables[5] # rotor radius
+        
         l_ef_expanded = csdl.expand(l_ef, (num_nodes,))
         D2_expanded = csdl.expand(D2, (num_nodes,))
         P_wo = k_r*np.pi*fr*rho_air*(2*np.pi*frequency)**2*l_ef_expanded*D2_expanded**4
+        Pm = 100
 
         # total losses
-        P_loss = P_copper + P_eddy + P_h + P_stress + P_wo
+        P_em_loss = P_eddy + P_h + P_stress + P_wo + Pm + P_eddy_s
+        P_loss = P_copper + P_em_loss
         input_power_active = self.register_output('input_power_active', P0 + P_loss)
         efficiency_active = self.register_output('efficiency_active', P0/input_power_active)
         
+        torque_equality = load_torque - efficiency_active*T_em
+        # torque_equality = T_em - load_torque - P_em_loss/omega
         residual = self.register_output(
             'residual',
-            load_torque - efficiency_active*T_em
+            torque_equality
         )
 
 
@@ -177,6 +188,7 @@ class EMTorqueModel(Model):
         self.parameters.declare('rated_current')
         self.parameters.declare('phases')
         self.parameters.declare('motor_variable_names')
+        self.parameters.declare('mode', default='input_load', values=['input_load', 'efficiency_map'])
 
     def define(self):
         p = self.parameters['pole_pairs']
@@ -185,6 +197,7 @@ class EMTorqueModel(Model):
         rated_current = self.parameters['rated_current']
         m = self.parameters['phases']
         motor_var_names = self.parameters['motor_variable_names']
+        mode = self.parameters['mode']
         T_lower_lim = self.declare_variable('T_lower_lim', val=0., shape=(num_nodes,))
         T_lim = self.declare_variable('T_lim', shape=(num_nodes,))
 
@@ -197,9 +210,14 @@ class EMTorqueModel(Model):
             motor_variable_names=motor_var_names
         )
 
+        if mode == 'input_load':
+            state = 'T_em'
+        elif mode == 'efficiency_map':
+            state = 'load_torque'
+
         implicit_torque_operation = self.create_implicit_operation(model)
         implicit_torque_operation.declare_state(
-            state='T_em',
+            state=state,
             residual='residual',
             bracket=(T_lower_lim, T_lim)
         )
@@ -211,7 +229,11 @@ class EMTorqueModel(Model):
         )
         implicit_torque_operation.linear_solver = ScipyKrylov()
 
-        load_torque = self.declare_variable('load_torque', shape=(num_nodes,))
+        if mode == 'input_load':
+            load_torque = self.declare_variable('load_torque', shape=(num_nodes,))
+        elif mode == 'efficiency_map':
+            T_em = self.declare_variable('T_em', shape=(num_nodes,))
+
         omega = self.declare_variable('omega', shape=(num_nodes,))
         motor_variables = self.declare_variable('motor_variables', shape=(25,))
         R_expanded=self.declare_variable('R_expanded', shape=(num_nodes,))
@@ -222,25 +244,27 @@ class EMTorqueModel(Model):
         I_q_rated = self.declare_variable('I_q_temp')
         B_delta = self.declare_variable('B_delta')
         D_i = self.declare_variable('D_i')
+
+        # T_em, I_d_upper_bracket_list_dummy, Id_upper_lim_dummy, a1_dummy, a2_dummy, a3_dummy, a4_dummy, a5_dummy, Iq_fw_dummy, Iq_MTPA_dummy, Id_fw_dummy, current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
+        #     load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
+        #     PsiF_expanded, Id_fw_bracket, I_q_rated, B_delta, D_i, 
+        #     expose=['I_d_upper_bracket_list_dummy', 'Id_upper_lim_dummy', 'a1_dummy','a2_dummy','a3_dummy','a4_dummy','a5_dummy','Iq_fw_dummy', 'Iq_MTPA_dummy', 'Id_fw_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
+        # )
+
+        if mode == 'input_load':
+            T_em, I_d_upper_bracket_list_dummy, Id_upper_lim_dummy, a1_dummy, a2_dummy, a3_dummy, a4_dummy, a5_dummy, Iq_fw_dummy, Iq_MTPA_dummy, Id_fw_dummy, current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
+                load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
+                PsiF_expanded, Id_fw_bracket, I_q_rated, B_delta, D_i, 
+                expose=['I_d_upper_bracket_list_dummy', 'Id_upper_lim_dummy', 'a1_dummy','a2_dummy','a3_dummy','a4_dummy','a5_dummy','Iq_fw_dummy', 'Iq_MTPA_dummy', 'Id_fw_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
+            )
+        elif mode == 'efficiency_map':
+            load_torque, I_d_upper_bracket_list_dummy, Id_upper_lim_dummy, a1_dummy, a2_dummy, a3_dummy, a4_dummy, a5_dummy, Iq_fw_dummy, Iq_MTPA_dummy, Id_fw_dummy, current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
+                T_em, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
+                PsiF_expanded, Id_fw_bracket, I_q_rated, B_delta, D_i, 
+                expose=['I_d_upper_bracket_list_dummy', 'Id_upper_lim_dummy', 'a1_dummy','a2_dummy','a3_dummy','a4_dummy','a5_dummy','Iq_fw_dummy', 'Iq_MTPA_dummy', 'Id_fw_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
+            )
+
         
-
-        # T_em, current_amplitude, output_power, input_power_active, efficiency_active = implicit_torque_operation(
-        #     load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
-        #     PsiF_expanded, I_q_rated, B_delta, D_i,
-        #     expose=['current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
-        # )
-
-        # T_em, efficiency_active, input_power_active, current_amplitude, output_power, Iq_fw_dummy, Iq_MTPA_dummy = implicit_torque_operation(
-        #     load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
-        #     PsiF_expanded, I_q_rated, B_delta, D_i,
-        #     expose=['efficiency_active', 'input_power_active', 'current_amplitude', 'output_power', 'Iq_fw_dummy', 'Iq_MTPA_dummy']
-        # )
-
-        T_em, I_d_upper_bracket_list_dummy, Id_upper_lim_dummy, a1_dummy, a2_dummy, a3_dummy, a4_dummy, a5_dummy, Iq_fw_dummy, Iq_MTPA_dummy, Id_fw_dummy, current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
-            load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
-            PsiF_expanded, Id_fw_bracket, I_q_rated, B_delta, D_i, 
-            expose=['I_d_upper_bracket_list_dummy', 'Id_upper_lim_dummy', 'a1_dummy','a2_dummy','a3_dummy','a4_dummy','a5_dummy','Iq_fw_dummy', 'Iq_MTPA_dummy', 'Id_fw_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
-        )
         
 
 if __name__ == '__main__':

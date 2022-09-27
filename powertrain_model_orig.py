@@ -1,7 +1,11 @@
 import numpy as np 
 from csdl import Model
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
+
+'''
+NOTE: THIS IS CURRENTLY BEING USED FOR THE TC1 SYSTEM LEVEL AIRCRAFT; DO NOT MODIFY
+'''
 
 '''
 SIMPLE POWERTRAIN MODEL

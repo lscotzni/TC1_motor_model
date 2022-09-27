@@ -9,13 +9,13 @@ from TC1_motor_model.motor_submodels.TC1_torque_limit_model import TorqueLimitMo
 from TC1_motor_model.motor_submodels.TC1_flux_weakening_model import FluxWeakeningBracketModel
 from TC1_motor_model.motor_submodels.TC1_efficiency_map_model import EfficiencyMapModel
 from TC1_motor_model.TC1_motor_sizing_model import TC1MotorSizingModel
+from TC1_motor_model.motor_submodels.TC1_implicit_em_torque_model import EMTorqueModel
 
 class ExtractUpperLimitTorqueModel(csdl.Model):
     def initialize(self):
         self.parameters.declare('pole_pairs') # 6
         self.parameters.declare('phases') # 3
         self.parameters.declare('num_slots') # 36
-        self.parameters.declare('op_voltage')
         self.parameters.declare('V_lim')
         self.parameters.declare('rated_current')
         self.parameters.declare('fit_coeff_dep_H') # FITTING COEFFICIENTS (X = H, B = f(H))
@@ -33,7 +33,6 @@ class ExtractUpperLimitTorqueModel(csdl.Model):
         m = self.parameters['phases']
         p = self.parameters['pole_pairs']
         Z = self.parameters['num_slots']
-        op_voltage = self.parameters['op_voltage']
         V_lim = self.parameters['V_lim']
         rated_current = self.parameters['rated_current']
         fit_coeff_dep_H = self.parameters['fit_coeff_dep_H']
@@ -123,7 +122,6 @@ class EfficiencyMapAnalysisModel(csdl.Model):
         self.parameters.declare('pole_pairs') # 6
         self.parameters.declare('phases') # 3
         self.parameters.declare('num_slots') # 36
-        self.parameters.declare('op_voltage')
         self.parameters.declare('V_lim')
         self.parameters.declare('rated_current')
         self.parameters.declare('num_active_nodes')
@@ -140,7 +138,6 @@ class EfficiencyMapAnalysisModel(csdl.Model):
         m = self.parameters['phases']
         p = self.parameters['pole_pairs']
         Z = self.parameters['num_slots']
-        op_voltage = self.parameters['op_voltage']
         V_lim = self.parameters['V_lim']
         rated_current = self.parameters['rated_current']
         num_active_nodes = self.parameters['num_active_nodes']
@@ -195,14 +192,27 @@ class EfficiencyMapAnalysisModel(csdl.Model):
         Iq_fw_bracket = self.declare_variable('Iq_fw_bracket', shape=(num_active_nodes, ))
         Id_fw_bracket = self.declare_variable('Id_fw_bracket', shape=(num_active_nodes, ))
 
+        # self.add(
+        #     EfficiencyMapModel(
+        #         pole_pairs=p,
+        #         V_lim=V_lim,
+        #         num_nodes=num_active_nodes,
+        #         rated_current=rated_current,
+        #         phases=m,
+        #         motor_variable_names=self.motor_variable_names
+        #     ),
+        #     'efficiency_map_model'
+        # )
+
         self.add(
-            EfficiencyMapModel(
+            EMTorqueModel(
                 pole_pairs=p,
                 V_lim=V_lim,
                 num_nodes=num_active_nodes,
                 rated_current=rated_current,
                 phases=m,
-                motor_variable_names=self.motor_variable_names
+                motor_variable_names=self.motor_variable_names,
+                mode='efficiency_map'
             ),
             'efficiency_map_model'
         )
@@ -219,15 +229,14 @@ if __name__ == '__main__':
     p = 6
     m = 3
     Z = 36
-    op_voltage = 300
-    V_lim = 800
-    rated_current = 123
+    V_lim = 200 # 200 OR 800
+    rated_current = 115
 
     D_i = 0.182
     L = 0.086
 
-    omega_step = 60 # TO ADJUST NUMBER OF STEPS BETWEEN LOWER (NONZERO) AND UPPER OMEGA
-    omega_range = np.linspace(100, 20000, omega_step)
+    omega_step = 120 # TO ADJUST NUMBER OF STEPS BETWEEN LOWER (NONZERO) AND UPPER OMEGA
+    omega_range = np.linspace(100, 10000, omega_step) # 14000, 20000
     num_active_nodes = len(omega_range)
 
     ''' INITIAL MODEL EVALUATION TO DETERMINE THE UPPER LIMIT EM TORQUE CURVE '''
@@ -235,7 +244,6 @@ if __name__ == '__main__':
         pole_pairs=p,
         phases=m,
         num_slots=Z,
-        op_voltage=op_voltage,
         V_lim=V_lim,
         rated_current=rated_current,
         fit_coeff_dep_H=fit_coeff_dep_H,
@@ -258,11 +266,12 @@ if __name__ == '__main__':
     motor_variables = sim['motor_variables']
     
     # fig = plt.figure(1)
-    # plt.plot(omega_range, upper_torque_curve, 'k', linewidth=5)
+    # plt.plot(omega_range*60/p/2/np.pi, upper_torque_curve, 'k', linewidth=5)
     # plt.xlabel('RPM')
     # plt.ylabel('EM Torque')
-
-    torque_grid_step = 60 # TO ADJUST NUMBER OF STEPS BETWEEN LOWER (NONZERO) AND UPPER LIMIT TORQUE
+    # plt.show()
+    # exit()
+    torque_grid_step = 80 # TO ADJUST NUMBER OF STEPS BETWEEN LOWER (NONZERO) AND UPPER LIMIT TORQUE
     omega_grid = np.resize(omega_range, (torque_grid_step, len(omega_range)))
     torque_grid = np.linspace(10, upper_torque_curve, torque_grid_step)
     torque_voltage_limit_grid = np.resize(torque_voltage_limit, (torque_grid_step, len(omega_range)))
@@ -275,7 +284,6 @@ if __name__ == '__main__':
         pole_pairs=p,
         phases=m,
         num_slots=Z,
-        op_voltage=op_voltage,
         V_lim=V_lim,
         rated_current=rated_current,
         num_active_nodes=len(omega_grid_vector),
@@ -307,17 +315,20 @@ if __name__ == '__main__':
     torque_grid_plot[1:, 0] = torque_grid_plot[1:,1]
 
     levels_f = np.linspace(0,1,11)
-    # levels_f = np.array([0.8, 0.9, 0.93, 0.96, 0.97, 0.975, 0.99, 1.])
-    levels = np.array([0.8, 0.9, 0.93, 0.96, 0.97, 0.975, 0.977, 0.9784])
+    levels = np.array([30, 80, 88, 90, 92, 93, 94, 95, 96, 97, 98])*0.01
+    # levels = np.array([0.8, 0.9, 0.93, 0.96, 0.97, 0.975, 0.977, 0.9784])
 
     plt.figure(2)
-    plt.contourf(omega_grid_plot, torque_grid_plot, efficiency_grid, cmap='jet', levels=levels_f)
+    plt.contourf(omega_grid_plot*60/p/2/np.pi, torque_grid_plot, efficiency_grid, cmap='jet', levels=levels_f)
     plt.colorbar()
     plt.clim(0,1)
-    contours = plt.contour(omega_grid_plot, torque_grid_plot, efficiency_grid, colors='black', levels=levels)
+    contours = plt.contour(omega_grid_plot*60/p/2/np.pi, torque_grid_plot, efficiency_grid, colors='black', levels=levels)
     plt.clabel(contours, inline=True, fontsize=8)
-    plt.plot(omega_range, upper_torque_curve, 'k', linewidth=5)
+    plt.plot(omega_range*60/p/2/np.pi, upper_torque_curve, 'k', linewidth=3)
     plt.xlabel('RPM')
     plt.ylabel('EM Torque (Nm)')
     plt.title('Efficiency Map')
+
+    plt.savefig('efficiency_maps/efficiency_map_V_lim={}.png'.format(V_lim))
+
     plt.show()

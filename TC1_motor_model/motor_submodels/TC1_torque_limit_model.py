@@ -1,7 +1,7 @@
 import numpy as np
 from csdl import Model, NewtonSolver, ScipyKrylov
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 class MaxTorqueImplicitModel(Model):
     def define(self):
@@ -15,7 +15,6 @@ class MaxTorqueImplicitModel(Model):
 
         T_lim_residual = self.register_output(
             'T_lim_residual',
-            # A/E*T_lim**4 + B/E*T_lim**3 + C/E*T_lim**2 + D/E*T_lim + 1,
             A/C*T_lim**4 + B/C*T_lim**3 + T_lim**2 + D/C*T_lim + E/C
         )
 
@@ -35,8 +34,6 @@ class MaxTorqueModel(Model):
         lower_bracket = self.declare_variable('lower_bracket', shape=(num_nodes,))
         upper_bracket = self.declare_variable('upper_bracket', shape=(num_nodes,))
         self.register_output('dummy_output', upper_bracket + lower_bracket) # HERE TO CREATE PROPER ORDER OF OPERATIONS
-        # bracket_lower = self.declare_variable('bracket_lower', 1600)
-        # bracket_upper = self.declare_variable('bracket_upper', 2000)
 
         # max_torque_implicit_model = MaxTorqueImplicitModel()
         max_torque_implicit_model = csdl.Model()
@@ -57,7 +54,6 @@ class MaxTorqueModel(Model):
             'T_lim',
             residual='T_lim_residual',
             bracket=(lower_bracket, upper_bracket)
-            # bracket=(1600,2000)
         )
         max_torque_implicit_op.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
@@ -92,11 +88,6 @@ class TorqueLimitModel(Model):
         omega = self.declare_variable('omega', shape=(num_nodes,))
         PsiF = self.declare_variable('PsiF')
 
-        # R_expanded = csdl.expand(R, (num_nodes,))
-        # L_d_expanded = csdl.expand(Ld, (num_nodes,))
-        # L_q_expanded = csdl.expand(Lq, (num_nodes,))
-        # PsiF_expanded = csdl.expand(PsiF, (num_nodes,))
-
         R_expanded = self.declare_variable('R_expanded', shape=(num_nodes,))
         L_d_expanded = self.declare_variable('L_d_expanded', shape=(num_nodes,))
         L_q_expanded = self.declare_variable('L_q_expanded', shape=(num_nodes,))
@@ -122,48 +113,6 @@ class TorqueLimitModel(Model):
 
         self.register_output('lower_bracket', lower_bracket)
         self.register_output('upper_bracket', upper_bracket)
-
-        # DERIVATIVE OF ZERO DISCRIMINANT QUARTIC TORQUE EQ TO GET BRACKETS
-        # a_cubic = 3*B/(4*A)
-        # b_cubic = 2*C/(4*A)
-        # c_cubic = D/(4*A)
-
-        # P1 = (a_cubic**2 - 3*b_cubic)/9 # Q IN NOTES
-        # P2 = (2*a_cubic**3 - 9*a_cubic*b_cubic + 27*c_cubic)/54 # R IN NOTES
-        # theta = csdl.arccos(P2/(P1**3)**(1/2))
-
-        # # asdf = self.create_output('test_out', shape=(6,))
-        # # asdf[0] = a_cubic
-        # # asdf[1] = b_cubic
-        # # asdf[2] = c_cubic
-        # # asdf[3] = P1
-        # # asdf[4] = P2
-        # # asdf[5] = theta
-
-        # # NEED TO FIX SHAPES HERE
-        # root1 = -1 * (2*(P1)**0.5*csdl.cos(theta/3)) - a_cubic/3
-        # root2 = -1 * (2*(P1)**0.5*csdl.cos((theta+2*np.pi)/3)) - a_cubic/3
-        # root3 = -1 * (2*(P1)**0.5*csdl.cos((theta-2*np.pi)/3)) - a_cubic/3
-
-        # cubic_roots = self.create_output('cubic_roots', shape=(num_nodes, 3))
-        # cubic_roots[:, 0] = csdl.reshape(root1, (num_nodes, 1))
-        # cubic_roots[:, 1] = csdl.reshape(root2, (num_nodes, 1))
-        # cubic_roots[:, 2] = csdl.reshape(root3, (num_nodes, 1))
-
-        # # cubic_roots[:, 0] = root1[:]
-        # # cubic_roots[:, 1] = root2[:]
-        # # cubic_roots[:, 2] = root3[:]
-
-        # max_cubic_root = csdl.max(cubic_roots)
-        # max_cubic_root = self.register_output(
-        #     'max_cubic_root',
-        #     csdl.max(cubic_roots, axis=1) # LOWER END OF BRACKET FOR QUARTIC EQUATION
-        # )
-        # upper_quartic_bracket = max_cubic_root * 10.0
-        # upper_quartic_bracket = self.register_output(
-        #     'upper_quartic_bracket',
-        #     upper_quartic_bracket
-        # )
 
         self.add(MaxTorqueModel(num_nodes=num_nodes), 'max_torque_model')
 
@@ -210,7 +159,6 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
             p_iter = p[i]
             q_iter = q[i]
             cond = 4*p_iter**3 + 27*q_iter**2 # THIS DETERMINES THE EXISTENCE OF VARIOUS ROOTS
-            # print('p: ', p_iter, 'q: ', q_iter, 'cond: ', cond)
 
             # IF CLAUSE TO COMPUTE LOWER BRACKET
             if cond > 0:
@@ -219,8 +167,6 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
 
                 cubic_arg_1 = -q_iter/2 + (q_iter**2/4 + p_iter**3/27)**(1/2)
                 cubic_arg_2 = -q_iter/2 - (q_iter**2/4 + p_iter**3/27)**(1/2)
-                # print(cubic_arg_1)
-                # print(cubic_arg_2)
 
                 cardano_sol = np.cbrt(cubic_arg_1) + np.cbrt(cubic_arg_2)
 
@@ -245,12 +191,10 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
                 root1 = -1 * (2*(P1)**0.5*np.cos(theta/3)) - a_cubic/3
                 root2 = -1 * (2*(P1)**0.5*np.cos((theta+2*np.pi)/3)) - a_cubic/3
                 root3 = -1 * (2*(P1)**0.5*np.cos((theta-2*np.pi)/3)) - a_cubic/3
-                # print('potential roots: ', root1, root2, root3)
 
                 lower_bracket_val = np.max(np.array([root1, root2, root3]))
 
             outputs['lower_bracket'][i] = lower_bracket_val 
-            # print(lower_bracket_val)
 
             # ITERATIVE METHOD TO FIND UPPER BRACKET
             A_iter = A[i]
@@ -275,22 +219,6 @@ class DiscreteCheck(csdl.CustomExplicitOperation):
                     KeyError('Method did not converge')
             
             outputs['upper_bracket'][i] = start
-            # print(start)
-            # print('---')
-
-        # print(outputs['lower_bracket'])
-        # print(outputs['upper_bracket'])
-
-        # exit()
-
-        # for i in range(self.num_nodes):
-
-        #     outputs['upper_bracket'][i] = ...
-
-
-
-
-
 
 if __name__ == '__main__':
     p = 6

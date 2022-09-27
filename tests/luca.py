@@ -1,6 +1,6 @@
 from csdl import Model, GraphRepresentation, NonlinearBlockGS
 import numpy as np
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 
 class ExampleWithSubsystemsBracketedArrayVariableBrackets(Model):

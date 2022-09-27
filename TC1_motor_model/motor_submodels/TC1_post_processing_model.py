@@ -3,13 +3,12 @@ import matplotlib.pyplot as plt
 
 from csdl import Model
 import csdl
-from csdl_om import Simulator
+from python_csdl_backend import Simulator
 
 class PostProcessingModel(Model):
     def initialize(self):
         self.parameters.declare('pole_pairs') # 6
         self.parameters.declare('phases') # 3
-        self.parameters.declare('op_voltage')
         self.parameters.declare('V_lim')
         self.parameters.declare('num_nodes')
 
@@ -17,7 +16,6 @@ class PostProcessingModel(Model):
 
         m = self.parameters['phases']
         p = self.parameters['pole_pairs']
-        op_voltage = self.parameters['op_voltage']
         V_lim = self.parameters['V_lim']
         num_nodes = self.parameters['num_nodes']
 
