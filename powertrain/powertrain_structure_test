@@ -1,0 +1,121 @@
+# from this import d
+import numpy as np 
+
+class PowertrainComponent(object):
+    def __init__(self, name, efficiency=1.0, failure_rate=0.0):
+        self.name = name
+        self.efficiency = efficiency
+        self.failure_rate = failure_rate
+
+
+class Inverter(PowertrainComponent):
+    def __init__(self, name, efficiency, failure_rate):
+        super().__init__(name, efficiency, failure_rate)
+
+class Transformer(PowertrainComponent):
+    def __init__(self, name, efficiency, failure_rate):
+        super().__init__(name, efficiency, failure_rate)
+
+class PowerDistributionUnit(PowertrainComponent):
+    def __init__(self, name, efficiency=1, failure_rate=0):
+        super().__init__(name, efficiency, failure_rate)
+
+class Battery(PowertrainComponent):
+    def __init__(self, name, efficiency=1, failure_rate=0):
+        super().__init__(name, efficiency, failure_rate)
+
+class Motor(PowertrainComponent):
+    def __init__(self, name, efficiency=1, failure_rate=0):
+        super().__init__(name, efficiency, failure_rate)
+
+class Powertrain(object):
+    def __init__(self, name):
+        self.name = name
+
+        self.nodes = []
+        self.connections = {}
+
+
+    def add_node(self, nodes):
+        if not isinstance(nodes, list):
+            nodes = [nodes]
+        self.nodes.extend(nodes)
+        for node in nodes:
+            if node.name not in self.connections.keys():
+                self.connections[node.name] = {
+                    'upstream': [],
+                    'downstream': []
+                }
+
+    def add_connection(self, upstream_nodes, downstream_nodes):
+        if len(upstream_nodes) != len(downstream_nodes):
+            raise TypeError('Mismatched size in inputs.')
+
+        for i, u_node in enumerate(upstream_nodes):
+            self.connections[u_node.name]['downstream'].append(downstream_nodes[i].name)
+
+        for i, d_node in enumerate(downstream_nodes):
+            self.connections[d_node.name]['upstream'].append(upstream_nodes[i].name)
+            
+        
+
+    def generate_fault_tree(self):
+        # LOOP OVER FOR AND GATES, EVERYTHING ELSE WILL BE AN OR GATE
+        if input_paths > 1:
+            AND
+        else:
+            OR
+        if output_paths > 1:
+            AND
+        else:
+            OR
+        
+
+    def assemble_powertrain(self):
+        pass
+
+    def finalize(self):
+        pass
+
+
+
+if __name__ == '__main__':
+    # 2 branches upstream, 2 downstream
+    B = [
+        Battery('battery_1', efficiency=1.0, failure_rate=0.0001),
+        Battery('battery_2', efficiency=1.0, failure_rate=0.0001),
+    ]
+    I = [
+        Inverter('inverter_1', efficiency=1.0, failure_rate=0.0001),
+        Inverter('inverter_2', efficiency=1.0, failure_rate=0.0001),
+    ]
+    T = [
+        Transformer('transformer_1', efficiency=1.0, failure_rate=0.0001),
+        Transformer('transformer_2', efficiency=1.0, failure_rate=0.0001),
+    ]
+    M = [
+        Motor('motor_1', efficiency=1.0, failure_rate=0.0001),
+        Motor('motor_2', efficiency=1.0, failure_rate=0.0001),
+    ]
+    PDU = PowerDistributionUnit('pdu_1', efficiency=1.0, failure_rate=0.0001)
+    P = Powertrain('powertrain')
+    P.add_node(B)
+    P.add_node(I)
+    P.add_node(T)
+    P.add_node(M)
+    P.add_node(PDU)
+    
+
+    P.add_connection(B, T)
+    P.add_connection(T, [PDU, PDU])
+    P.add_connection([PDU, PDU], I)
+    P.add_connection(I, M)
+
+    print(P.connections)
+    print(P.connections['inverter_1'])
+
+    P.assemble_powertrain()
+
+
+
+    
