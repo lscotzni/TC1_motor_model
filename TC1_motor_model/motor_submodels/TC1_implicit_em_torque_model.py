@@ -114,8 +114,8 @@ class EMTorqueImplicitModel(Model):
         
         # load power
         # eq of the form P0 = speed * torque
-        # P0 = load_torque * omega * 2*np.pi/60
-        P0 = load_torque*omega
+        P0 = load_torque * omega * 2*np.pi/60
+        # P0 = load_torque*omega
         # P0 = T_em * omega * 2*np.pi/60/p
         # P0 = T_em * omega/p
         self.register_output('output_power', P0)
