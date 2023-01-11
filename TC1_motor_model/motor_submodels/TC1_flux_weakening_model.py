@@ -194,7 +194,7 @@ class FluxWeakeningImplicitModel(Model):
         )
         solve_flux_weakening.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
-            maxiter=100,
+            maxiter=500,
             iprint=True,
         )
         solve_flux_weakening.linear_solver = ScipyKrylov()

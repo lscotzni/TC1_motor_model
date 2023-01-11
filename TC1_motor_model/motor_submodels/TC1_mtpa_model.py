@@ -31,7 +31,7 @@ class MTPAImplicitModel(Model):
         )
         mtpa_implicit_op.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
-            maxiter=10000,
+            maxiter=500,
             iprint=True
         )
         mtpa_implicit_op.linear_solver = ScipyKrylov()

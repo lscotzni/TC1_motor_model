@@ -224,9 +224,14 @@ class TC1MotorAnalysisModel(Model):
 
             input_power_active = self.declare_variable('input_power_active', shape=(num_active_nodes,))
             input_power = csdl.matvec(selection_indices, input_power_active)
-            
             self.register_output('input_power', input_power)
 
+            '''
+            NOTE TO SELF:
+            Make this active calculation available for all relevant outputs:
+                - efficiency, input power, output power, load torque, EM torque (potentially others)
+            '''
+            
             # CALCULATING UPPER LIMIT TORQUE CURVE  
             T_upper_lim_curve = self.register_output(
                 'T_upper_lim_curve',

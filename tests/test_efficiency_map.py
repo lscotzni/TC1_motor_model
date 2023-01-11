@@ -2,6 +2,9 @@ import numpy as np
 import csdl
 from python_csdl_backend import Simulator
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set()
 
 from TC1_motor_model.motor_submodels.TC1_magnet_mec_model import MagnetMECModel
 from TC1_motor_model.motor_submodels.TC1_inductance_mec_model import InductanceModel
@@ -229,14 +232,14 @@ if __name__ == '__main__':
     p = 6
     m = 3
     Z = 36
-    V_lim = 200 # 200 OR 800
+    V_lim = 800 # 200 OR 800
     rated_current = 115
 
     D_i = 0.182
     L = 0.086
 
     omega_step = 120 # TO ADJUST NUMBER OF STEPS BETWEEN LOWER (NONZERO) AND UPPER OMEGA
-    omega_range = np.linspace(100, 10000, omega_step) # 14000, 20000
+    omega_range = np.linspace(100, 15000, omega_step) # 14000, 20000, can change this range
     num_active_nodes = len(omega_range)
 
     ''' INITIAL MODEL EVALUATION TO DETERMINE THE UPPER LIMIT EM TORQUE CURVE '''
@@ -271,7 +274,7 @@ if __name__ == '__main__':
     # plt.ylabel('EM Torque')
     # plt.show()
     # exit()
-    torque_grid_step = 80 # TO ADJUST NUMBER OF STEPS BETWEEN LOWER (NONZERO) AND UPPER LIMIT TORQUE
+    torque_grid_step = 80 # 80 TO ADJUST NUMBER OF STEPS BETWEEN LOWER (NONZERO) AND UPPER LIMIT TORQUE
     omega_grid = np.resize(omega_range, (torque_grid_step, len(omega_range)))
     torque_grid = np.linspace(10, upper_torque_curve, torque_grid_step)
     torque_voltage_limit_grid = np.resize(torque_voltage_limit, (torque_grid_step, len(omega_range)))
@@ -314,21 +317,44 @@ if __name__ == '__main__':
     torque_grid_plot[1:, 1:] = np.reshape(torque_grid, (torque_grid_step, len(omega_range)))
     torque_grid_plot[1:, 0] = torque_grid_plot[1:,1]
 
-    levels_f = np.linspace(0,1,11)
+    levels_f = np.linspace(0,1,31)
     levels = np.array([30, 80, 88, 90, 92, 93, 94, 95, 96, 97, 98])*0.01
     # levels = np.array([0.8, 0.9, 0.93, 0.96, 0.97, 0.975, 0.977, 0.9784])
-
+    sns.set_style("ticks")
     plt.figure(2)
     plt.contourf(omega_grid_plot*60/p/2/np.pi, torque_grid_plot, efficiency_grid, cmap='jet', levels=levels_f)
-    plt.colorbar()
+    # plt.colorbar()
     plt.clim(0,1)
     contours = plt.contour(omega_grid_plot*60/p/2/np.pi, torque_grid_plot, efficiency_grid, colors='black', levels=levels)
-    plt.clabel(contours, inline=True, fontsize=8)
+    plt.clabel(contours, inline=True, fontsize=12)
     plt.plot(omega_range*60/p/2/np.pi, upper_torque_curve, 'k', linewidth=3)
-    plt.xlabel('RPM')
-    plt.ylabel('EM Torque (Nm)')
-    plt.title('Efficiency Map')
+    plt.xlabel('Speed [RPM]', fontsize=12)
+    plt.ylabel('Torque [Nm]', fontsize=12)
+    plt.xticks(ticks=np.arange(0,15001,3000), fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(False)
+    # plt.title('Efficiency Map')
+
+    # SAVING DATA FOR NICK'S TRAJECTORY OPTIMIZATION SURROGATE MODEL
+    if False:
+        rotor_omega_grid = omega_grid_plot / 4.0
+        load_torque = sim_eff_map['load_torque'].reshape((rotor_omega_grid.shape[0]-1,rotor_omega_grid.shape[1]-1))
+        load_torque_grid = np.zeros_like(rotor_omega_grid)
+        load_torque_grid[1:,1:] = load_torque
+
+        np.savetxt('efficiency_maps/Nick_surrogate_data_torque_V_lim={}.txt'.format(V_lim), load_torque_grid*4.)
+        np.savetxt('efficiency_maps/Nick_surrogate_data_speed_V_lim={}.txt'.format(V_lim), rotor_omega_grid * 60 / (2*np.pi*p))
+        np.savetxt('efficiency_maps/Nick_surrogate_data_efficiency_V_lim={}.txt'.format(V_lim), efficiency_grid)
+
+        # UPPER TORQUE CURVE
+        upper_load_torque_curve = torque_grid_plot[-1,:] * efficiency_grid[-1,:]
+        upper_load_torque_data = np.zeros((2,torque_grid_plot.shape[1]))
+        upper_load_torque_data[0,:] = rotor_omega_grid[0,:] * 60 / (2*np.pi*p) # RPM
+        upper_load_torque_data[1,:] = upper_load_torque_curve
+
+        np.savetxt('efficiency_maps/Nick_surrogate_data_max_torque_curve_V_lim={}.txt'.format(V_lim), upper_load_torque_data)
 
     plt.savefig('efficiency_maps/efficiency_map_V_lim={}.png'.format(V_lim))
+    plt.savefig('efficiency_maps/efficiency_map_V_lim={}.pdf'.format(V_lim))
 
     plt.show()

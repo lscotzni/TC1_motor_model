@@ -38,3 +38,7 @@ POWERTRAIN MODEL:
 # DISCUSS WITH ZEYU + SHUOFENG:
 - concerns with exact values in the efficiency map:
   - potentially add the factor "p" when converting to rad/sec (wait for Zeyu's response)
+
+- fix the input for speed/frequency for the internal analysis models
+  - I think the "omega" that is currently being used should be the **electrical** frequency, not mechanical (confirm with Zeyu later)
+  - fix this during the rewrite and do so alongside Zeyu's MATLAB code
