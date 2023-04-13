@@ -51,10 +51,6 @@ class EMTorqueImplicitModel(Model):
             'flux_weakening_model',
         )
 
-        I_d_upper_bracket_list = self.declare_variable('I_d_upper_bracket_list', shape=(num_nodes,2))
-        Id_upper_lim = self.declare_variable('Id_upper_lim', shape=(num_nodes,))
-
-
         # MTPA MODEL
         self.add(
             MTPAModel(
@@ -74,11 +70,6 @@ class EMTorqueImplicitModel(Model):
             'voltage_amplitude',
             (U_d**2 + U_q**2)**(1/2)
         )
-        a1 = self.declare_variable('a1', shape=(num_nodes,))
-        a2 = self.declare_variable('a2', shape=(num_nodes,))
-        a3 = self.declare_variable('a3', shape=(num_nodes,))
-        a4 = self.declare_variable('a4', shape=(num_nodes,))
-        a5 = self.declare_variable('a5', shape=(num_nodes,))
 
         Iq_fw = self.declare_variable('Iq_fw', shape=(num_nodes,))
         Iq_MTPA = self.declare_variable('Iq_MTPA', shape=(num_nodes,)) # CHECK NAMING SCHEME FOR VARIABLE
@@ -131,7 +122,7 @@ class EMTorqueImplicitModel(Model):
         V_s = csdl.expand((np.pi*l_ef*(D1-D_i)**2)/4-36*l_ef*Acu, (num_nodes,)); # volume of stator
         V_s1 = csdl.expand((np.pi*l_ef*(D2-D_shaft)**2)/4, (num_nodes,))
         V_t = csdl.expand(2*p*l_ef*bm*hm, (num_nodes,))
-        K_c = 0.822;
+        K_c = 0.822
         P_eddy = K_e*(V_s+V_s1)*(B_delta_expanded*frequency)**2; # eddy loss
         P_eddy_s = K_e*(V_t)*(B_delta_expanded*frequency)**2; # eddy loss
 
@@ -209,13 +200,6 @@ class EMTorqueModel(Model):
             residual='residual',
             bracket=(T_lower_lim, T_lim)
         )
-
-        implicit_torque_operation.nonlinear_solver = NewtonSolver(
-            solve_subsystems=True,
-            maxiter=100,
-            iprint=True,
-        )
-        implicit_torque_operation.linear_solver = ScipyKrylov()
 
         if mode == 'input_load':
             load_torque = self.declare_variable('load_torque', shape=(num_nodes,))
