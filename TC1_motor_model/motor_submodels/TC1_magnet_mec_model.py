@@ -143,13 +143,6 @@ class MagnetMECModel(Model):
         upper_bound = Br
         solve_MEC = self.create_implicit_operation(MECmodel)
         solve_MEC.declare_state('B_delta', residual='residual', bracket=(lower_bound, upper_bound))
-        
-        solve_MEC.nonlinear_solver = NewtonSolver(
-            solve_subsystems=False,
-            maxiter=1000,
-            iprint=True
-        )
-        solve_MEC.linear_solver = ScipyKrylov()
 
         ''' --- DECLARING VARIABLES AGAIN --- '''
         t1      = self.declare_variable('tooth_pitch') # TOOTH PITCH

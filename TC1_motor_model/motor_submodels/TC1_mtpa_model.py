@@ -29,12 +29,6 @@ class MTPAImplicitModel(Model):
             residual='MTPA_residual',
             bracket=(mtpa_lower_bracket, MTPA_upper_bracket)
         )
-        mtpa_implicit_op.nonlinear_solver = NewtonSolver(
-            solve_subsystems=False,
-            maxiter=500,
-            iprint=True
-        )
-        mtpa_implicit_op.linear_solver = ScipyKrylov()
 
         T_em_star = self.declare_variable('T_em_star', shape=(num_nodes,))
         Iq_MTPA_star = mtpa_implicit_op(T_em_star)

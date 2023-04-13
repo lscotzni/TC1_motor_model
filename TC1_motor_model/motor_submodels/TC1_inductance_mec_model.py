@@ -116,12 +116,6 @@ class InductanceModel(Model):
         eps = self.declare_variable('eps', 1e-5)
         Inductance_MEC = self.create_implicit_operation(q_inductance_model)
         Inductance_MEC.declare_state('phi_aq', residual='inductance_residual', bracket=(eps, phi_air))
-        Inductance_MEC.nonlinear_solver = NewtonSolver(
-            solve_subsystems=False,
-            maxiter=100,
-            iprint=True
-        )
-        Inductance_MEC.linear_solver = ScipyKrylov()
 
         alpha_i = self.declare_variable('alpha_i')
         pole_pitch = self.declare_variable('pole_pitch')

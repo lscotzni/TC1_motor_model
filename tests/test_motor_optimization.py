@@ -1,10 +1,11 @@
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as plt
 from python_csdl_backend import Simulator
 from python_csdl_backend import Simulator
 from csdl import Model, GraphRepresentation
 from modopt.csdl_library import CSDLProblem
 from modopt.scipy_library import SLSQP
+from modopt.optimization_algorithms import SQP
 import csdl
 
 from TC1_motor_model.TC1_motor_sizing_model import TC1MotorSizingModel
@@ -157,9 +158,10 @@ if __name__ == '__main__':
     # Setup your preferred optimizer (SLSQP) with the Problem object 
     # Pass in the options for your chosen optimizer
     optimizer = SLSQP(prob, maxiter=20)
+    # optimizer = SQP(prob, max_itr=20)
 
     # Check first derivatives at the initial guess, if needed
-    optimizer.check_first_derivatives(prob.x0)
+    # optimizer.check_first_derivatives(prob.x0)
 
     # Solve your optimization problem
     optimizer.solve()

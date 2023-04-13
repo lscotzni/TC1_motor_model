@@ -192,12 +192,6 @@ class FluxWeakeningImplicitModel(Model):
             bracket=(Id_fw_bracket_low, Id_upper_lim),
             # bracket=(-587.9010, 13.90909091)
         )
-        solve_flux_weakening.nonlinear_solver = NewtonSolver(
-            solve_subsystems=False,
-            maxiter=500,
-            iprint=True,
-        )
-        solve_flux_weakening.linear_solver = ScipyKrylov()
 
         a1 = self.declare_variable('a1', shape=(num_nodes,))
         a2 = self.declare_variable('a2', shape=(num_nodes,))
