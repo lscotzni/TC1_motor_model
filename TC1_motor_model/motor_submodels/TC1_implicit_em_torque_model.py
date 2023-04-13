@@ -54,8 +54,6 @@ class EMTorqueImplicitModel(Model):
         I_d_upper_bracket_list = self.declare_variable('I_d_upper_bracket_list', shape=(num_nodes,2))
         Id_upper_lim = self.declare_variable('Id_upper_lim', shape=(num_nodes,))
 
-        I_d_upper_bracket_list_dummy = self.register_output('I_d_upper_bracket_list_dummy',1*I_d_upper_bracket_list)
-        Id_upper_lim_dummy = self.register_output('Id_upper_lim_dummy',1*Id_upper_lim)
 
         # MTPA MODEL
         self.add(
@@ -82,19 +80,9 @@ class EMTorqueImplicitModel(Model):
         a4 = self.declare_variable('a4', shape=(num_nodes,))
         a5 = self.declare_variable('a5', shape=(num_nodes,))
 
-        a1_dummy = self.register_output('a1_dummy', a1*1)
-        a2_dummy = self.register_output('a2_dummy', a2*1)
-        a3_dummy = self.register_output('a3_dummy', a3*1)
-        a4_dummy = self.register_output('a4_dummy', a4*1)
-        a5_dummy = self.register_output('a5_dummy', a5*1)
-
         Iq_fw = self.declare_variable('Iq_fw', shape=(num_nodes,))
         Iq_MTPA = self.declare_variable('Iq_MTPA', shape=(num_nodes,)) # CHECK NAMING SCHEME FOR VARIABLE
         Id_fw = self.declare_variable('Id_fw', shape=(num_nodes,))
-
-        self.register_output('Iq_fw_dummy', Iq_fw * 1)
-        self.register_output('Iq_MTPA_dummy', Iq_MTPA * 1) # CHECK NAMING SCHEME FOR VARIABLE
-        self.register_output('Id_fw_dummy', Id_fw * 1)
 
         Id_MTPA = (L_d_expanded - L_q_expanded)**(-1) * (T_em/(3/2*p*Iq_MTPA) - PsiF_expanded)
         U_d_MTPA = R_expanded*Id_MTPA - omega*L_q_expanded*Iq_MTPA
@@ -245,28 +233,20 @@ class EMTorqueModel(Model):
         B_delta = self.declare_variable('B_delta')
         D_i = self.declare_variable('D_i')
 
-        # T_em, I_d_upper_bracket_list_dummy, Id_upper_lim_dummy, a1_dummy, a2_dummy, a3_dummy, a4_dummy, a5_dummy, Iq_fw_dummy, Iq_MTPA_dummy, Id_fw_dummy, current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
-        #     load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
-        #     PsiF_expanded, Id_fw_bracket, I_q_rated, B_delta, D_i, 
-        #     expose=['I_d_upper_bracket_list_dummy', 'Id_upper_lim_dummy', 'a1_dummy','a2_dummy','a3_dummy','a4_dummy','a5_dummy','Iq_fw_dummy', 'Iq_MTPA_dummy', 'Id_fw_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
-        # )
-
         if mode == 'input_load':
-            T_em, I_d_upper_bracket_list_dummy, Id_upper_lim_dummy, a1_dummy, a2_dummy, a3_dummy, a4_dummy, a5_dummy, Iq_fw_dummy, Iq_MTPA_dummy, Id_fw_dummy, current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
+            T_em, current_amplitude, output_power, input_power_active, efficiency_active = implicit_torque_operation(
                 load_torque, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
                 PsiF_expanded, Id_fw_bracket, I_q_rated, B_delta, D_i, 
-                expose=['I_d_upper_bracket_list_dummy', 'Id_upper_lim_dummy', 'a1_dummy','a2_dummy','a3_dummy','a4_dummy','a5_dummy','Iq_fw_dummy', 'Iq_MTPA_dummy', 'Id_fw_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
+                expose=['current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
             )
         elif mode == 'efficiency_map':
-            load_torque, I_d_upper_bracket_list_dummy, Id_upper_lim_dummy, a1_dummy, a2_dummy, a3_dummy, a4_dummy, a5_dummy, Iq_fw_dummy, Iq_MTPA_dummy, Id_fw_dummy, current_amplitude, output_power, input_power_active,efficiency_active = implicit_torque_operation(
+            load_torque, current_amplitude, output_power, input_power_active, efficiency_active = implicit_torque_operation(
                 T_em, omega, motor_variables, R_expanded, L_d_expanded, L_q_expanded, 
                 PsiF_expanded, Id_fw_bracket, I_q_rated, B_delta, D_i, 
-                expose=['I_d_upper_bracket_list_dummy', 'Id_upper_lim_dummy', 'a1_dummy','a2_dummy','a3_dummy','a4_dummy','a5_dummy','Iq_fw_dummy', 'Iq_MTPA_dummy', 'Id_fw_dummy', 'current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
+                expose=['current_amplitude', 'output_power', 'input_power_active', 'efficiency_active']
             )
 
         
-        
-
 if __name__ == '__main__':
     p = 6
     V_lim = 800
