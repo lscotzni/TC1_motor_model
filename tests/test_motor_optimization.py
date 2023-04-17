@@ -6,6 +6,7 @@ from csdl import Model, GraphRepresentation
 from modopt.csdl_library import CSDLProblem
 from modopt.scipy_library import SLSQP
 from modopt.optimization_algorithms import SQP
+from modopt.snopt_library import SNOPT
 import csdl
 
 from TC1_motor_model.TC1_motor_sizing_model import TC1MotorSizingModel
@@ -126,6 +127,7 @@ if __name__ == '__main__':
     # L = 0.086
 
     load_torque_rotor = np.array([501.062])
+    # load_torque_rotor = np.array([1400])
     omega_rotor = np.array([3387.3981])
 
     num_nodes = len(load_torque_rotor)
@@ -159,6 +161,7 @@ if __name__ == '__main__':
     # Pass in the options for your chosen optimizer
     optimizer = SLSQP(prob, maxiter=20)
     # optimizer = SQP(prob, max_itr=20)
+    # optimizer = SNOPT(prob, Major_optimality=1e-6, Major_feasibility=1e-6)
 
     # Check first derivatives at the initial guess, if needed
     # optimizer.check_first_derivatives(prob.x0)
@@ -168,3 +171,7 @@ if __name__ == '__main__':
 
     # Print results of optimization
     optimizer.print_results()
+
+    print('dv1-diameter: ', sim['D_i'])
+    print('dv2-length: ', sim['L'])
+    print('obj-eta: ', sim['efficiency_active'])

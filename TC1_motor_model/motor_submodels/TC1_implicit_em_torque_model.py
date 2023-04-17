@@ -71,6 +71,7 @@ class EMTorqueImplicitModel(Model):
             (U_d**2 + U_q**2)**(1/2)
         )
 
+        # The 3 variables below come from FWModel and MTPAModel within the residual
         Iq_fw = self.declare_variable('Iq_fw', shape=(num_nodes,))
         Iq_MTPA = self.declare_variable('Iq_MTPA', shape=(num_nodes,)) # CHECK NAMING SCHEME FOR VARIABLE
         Id_fw = self.declare_variable('Id_fw', shape=(num_nodes,))
@@ -85,6 +86,13 @@ class EMTorqueImplicitModel(Model):
         I_q = (csdl.exp(k*(U_MTPA - V_lim))*Iq_fw + Iq_MTPA) / (csdl.exp(k*(U_MTPA - V_lim)) + 1.0)
         # I_q = csdl.min()
         I_d = (T_em / (1.5*p*I_q) - PsiF_expanded) / (L_d_expanded-L_q_expanded) # CHECK SIZE OF COMPUTATIONS HERE
+        # self.print_var(I_d)
+        # self.print_var(Id_fw)
+        # self.print_var(Id_MTPA)
+        # self.print_var(I_q)
+        # self.print_var(Iq_fw)
+        # self.print_var(Iq_MTPA)
+
         current_amplitude = self.register_output(
             'current_amplitude',
             (I_q**2 + I_d**2)**0.5
@@ -177,7 +185,7 @@ class EMTorqueModel(Model):
         m = self.parameters['phases']
         motor_var_names = self.parameters['motor_variable_names']
         mode = self.parameters['mode']
-        T_lower_lim = self.declare_variable('T_lower_lim', val=0., shape=(num_nodes,))
+        # T_lower_lim = self.declare_variable('T_lower_lim', val=0., shape=(num_nodes,))
         T_lim = self.declare_variable('T_lim', shape=(num_nodes,))
 
         model = EMTorqueImplicitModel(
@@ -198,7 +206,8 @@ class EMTorqueModel(Model):
         implicit_torque_operation.declare_state(
             state=state,
             residual='residual',
-            bracket=(T_lower_lim, T_lim)
+            # bracket=(T_lower_lim, T_lim)
+            bracket=(np.array([0.,]), T_lim)
         )
 
         if mode == 'input_load':
