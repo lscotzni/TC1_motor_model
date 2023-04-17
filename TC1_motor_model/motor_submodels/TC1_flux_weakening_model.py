@@ -36,7 +36,7 @@ class FluxWeakeningBracketModel(Model):
         )
         Iq_fw_bracket_implicit_op.nonlinear_solver = NewtonSolver(
             solve_subsystems=False,
-            maxiter=10000,
+            maxiter=250,
             iprint=True
         )
         Iq_fw_bracket_implicit_op.linear_solver = ScipyKrylov()
@@ -73,7 +73,7 @@ class FluxWeakeningModel(Model):
         
         omega = self.declare_variable('omega', shape=(num_nodes,))
         T_em = self.declare_variable('T_em', shape=(num_nodes,))
-        T_lim = self.declare_variable('T_lim', shape=(num_nodes,)) # UPPER CURVE LIMIT
+        # T_lim = self.declare_variable('T_lim', shape=(num_nodes,)) # UPPER CURVE LIMIT
 
         R_expanded = self.declare_variable('R_expanded', shape=(num_nodes,))
         L_d_expanded = self.declare_variable('L_d_expanded', shape=(num_nodes,))
@@ -81,7 +81,7 @@ class FluxWeakeningModel(Model):
         PsiF_expanded = self.declare_variable('PsiF_expanded', shape=(num_nodes,))
 
         D = (3*p*(L_d_expanded-L_q_expanded))
-        Id_fw_bracket_low = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
+        # Id_fw_bracket_low = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
         # THE LOWER END OF THE BRACKET (MOST NEGATIVE, WHERE DISCRIMINANT = 0)
         
         # FLUX WEAKENING IMPLICIT MODEL
@@ -166,7 +166,7 @@ class FluxWeakeningImplicitModel(Model):
         Id_upper_lim = self.declare_variable('Id_upper_lim', shape=(num_nodes,))
         Id_fw_bracket_low = self.declare_variable('Id_fw_bracket', shape=(num_nodes,))
 
-        self.register_output('dummy_out_FW', Id_fw_bracket_low/I_d_asymp)
+        # self.register_output('dummy_out_FW', Id_fw_bracket_low/I_d_asymp)      # NOT used anywhere else in the package
 
         ''' --- START IMPLICIT MODEL FOR FLUX WEAKENING --- '''
         model=Model()
@@ -186,10 +186,13 @@ class FluxWeakeningImplicitModel(Model):
         ''' --- END IMPLICIT MODEL FOR FLUX WEAKENING --- '''
 
         solve_flux_weakening = self.create_implicit_operation(model)
+        # self.print_var(Id_fw_bracket_low)
+        # self.print_var(Id_upper_lim)
         solve_flux_weakening.declare_state('Id_fw', 
             residual='Id_fw_residual', 
             # bracket=(Id_fw_bracket_low, I_d_asymp),
             bracket=(Id_fw_bracket_low, Id_upper_lim),
+            # bracket=(np.array([-1000.,]), Id_upper_lim),
             # bracket=(-587.9010, 13.90909091)
         )
 
