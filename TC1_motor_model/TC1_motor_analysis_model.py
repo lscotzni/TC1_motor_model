@@ -175,7 +175,7 @@ class TC1MotorAnalysisModel(Model):
                 'torque_limit_model'
         )
         T_lim = self.declare_variable('T_lim', shape=(num_active_nodes,))
-        T_lower_lim = self.declare_variable('T_lower_lim', val=0., shape=(num_active_nodes,))
+        # T_lower_lim = self.declare_variable('T_lower_lim', val=0., shape=(num_active_nodes,))
         
         D = (3*p*(L_d_expanded-L_q_expanded))
 
@@ -198,7 +198,7 @@ class TC1MotorAnalysisModel(Model):
             4*T_lim**2*(R_expanded**2 + (omega*L_d_expanded)**2)
         )
 
-        self.add(
+        self.add(                                       # Works without this model
             FluxWeakeningBracketModel(
                 pole_pairs=p,
                 num_nodes=num_active_nodes
@@ -206,8 +206,10 @@ class TC1MotorAnalysisModel(Model):
             'flux_weakening_bracket_method'
         )
 
-        Iq_fw_bracket = self.declare_variable('Iq_fw_bracket', shape=(num_active_nodes, ))
-        Id_fw_bracket = self.declare_variable('Id_fw_bracket', shape=(num_active_nodes, ))
+        # Iq_fw_bracket = self.declare_variable('Iq_fw_bracket', shape=(num_active_nodes, )) # ASK LUCA
+        # Id_fw_bracket = self.declare_variable('Id_fw_bracket', shape=(num_active_nodes, )) # ASK LUCA 
+        # self.print_var(Iq_fw_bracket)
+        # self.print_var(Id_fw_bracket)
 
         if model_test == False:
             self.add(
